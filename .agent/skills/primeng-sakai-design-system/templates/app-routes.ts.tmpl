@@ -1,0 +1,61 @@
+import { Routes } from '@angular/router';
+import { AppLayout } from '@/app/layout/component/app.layout';
+import { authGuard, guestGuard } from '@/app/core/guards/auth.guard';
+
+export const routes: Routes = [
+  {
+    path: 'auth',
+    canActivate: [guestGuard],
+    children: [
+      {
+        path: 'login',
+        loadComponent: () =>
+          import('@/app/pages/auth/login').then((m) => m.Login),
+      },
+      // { path: 'register', loadComponent: () => import(...) },
+    ],
+  },
+  {
+    path: '',
+    component: AppLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('@/app/pages/dashboard/dashboard').then((m) => m.Dashboard),
+      },
+
+      // === Template para cada m\u00f3dulo CRUD ===
+      // {
+      //   path: '{{modulo}}',
+      //   children: [
+      //     {
+      //       path: '',
+      //       loadComponent: () =>
+      //         import('@/app/pages/{{modulo}}/{{modulo}}-list').then(
+      //           (m) => m.{{Entidade}}ListComponent
+      //         ),
+      //     },
+      //     {
+      //       path: 'novo',
+      //       loadComponent: () =>
+      //         import('@/app/pages/{{modulo}}/{{modulo}}-form').then(
+      //           (m) => m.{{Entidade}}FormComponent
+      //         ),
+      //     },
+      //     {
+      //       path: ':id/editar',
+      //       loadComponent: () =>
+      //         import('@/app/pages/{{modulo}}/{{modulo}}-form').then(
+      //           (m) => m.{{Entidade}}FormComponent
+      //         ),
+      //     },
+      //   ],
+      // },
+    ],
+  },
+  { path: '**', redirectTo: '' },
+];

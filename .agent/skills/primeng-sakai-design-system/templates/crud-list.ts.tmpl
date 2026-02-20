@@ -1,0 +1,267 @@
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { TableModule, TableLazyLoadEvent } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { ToolbarModule } from 'primeng/toolbar';
+import { DialogModule } from 'primeng/dialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { environment } from '@/environments/environment';
+
+// Adaptar interface conforme campos da entidade
+interface {{Entidade}} {
+  id: string;
+  nome: string;
+  status: string;
+  // campo1: string;
+  // campo2: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PageResponse {
+  content: {{Entidade}}[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
+@Component({
+  selector: 'app-{{modulo}}-list',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    IconFieldModule,
+    InputIconModule,
+    TagModule,
+    ToastModule,
+    ToolbarModule,
+    DialogModule,
+    ConfirmDialogModule,
+  ],
+  providers: [MessageService, ConfirmationService],
+  template: `
+    <p-toast />
+    <p-confirmdialog />
+
+    <p-toolbar styleClass="mb-6 gap-2">
+      <ng-template #start>
+        <h2 class="m-0 text-color font-bold text-2xl">{{EntidadePlural}}</h2>
+      </ng-template>
+      <ng-template #end>
+        <p-button
+          label="Novo {{EntidadeLabel}}"
+          icon="pi pi-plus"
+          severity="primary"
+          routerLink="/{{modulo}}/novo"
+        />
+      </ng-template>
+    </p-toolbar>
+
+    <div class="card">
+      <p-table
+        [value]="items()"
+        [lazy]="true"
+        [paginator]="true"
+        [rows]="pageSize()"
+        [totalRecords]="totalElements()"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        [loading]="loading()"
+        [globalFilterFields]="['nome']"
+        (onLazyLoad)="onLazyLoad($event)"
+        [tableStyle]="{ 'min-width': '50rem' }"
+        dataKey="id"
+      >
+        <ng-template #caption>
+          <div class="flex items-center justify-between">
+            <span class="text-xl text-muted-color">
+              {{ totalElements() }} registro(s)
+            </span>
+            <p-iconfield iconPosition="left">
+              <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+              <input
+                pInputText
+                type="text"
+                [(ngModel)]="searchValue"
+                (input)="onSearch()"
+                placeholder="Buscar..."
+              />
+            </p-iconfield>
+          </div>
+        </ng-template>
+
+        <ng-template #header>
+          <tr>
+            <th pSortableColumn="nome">
+              Nome <p-sortIcon field="nome" />
+            </th>
+            <th>Status</th>
+            <!-- Adicionar colunas conforme campos -->
+            <th style="width: 10rem">Ações</th>
+          </tr>
+        </ng-template>
+
+        <ng-template #body let-item>
+          <tr>
+            <td>{{ item.nome }}</td>
+            <td>
+              <p-tag
+                [value]="item.status"
+                [severity]="getStatusSeverity(item.status)"
+              />
+            </td>
+            <!-- Adicionar colunas conforme campos -->
+            <td>
+              <div class="flex gap-2">
+                <p-button
+                  icon="pi pi-pencil"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="info"
+                  [routerLink]="['/{{modulo}}', item.id, 'editar']"
+                  pTooltip="Editar"
+                />
+                <p-button
+                  icon="pi pi-trash"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="danger"
+                  (click)="confirmDelete(item)"
+                  pTooltip="Excluir"
+                />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="3" class="text-center p-6 text-muted-color">
+              <i class="pi pi-inbox text-4xl mb-4 block"></i>
+              Nenhum registro encontrado.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  `,
+})
+export class {{Entidade}}ListComponent implements OnInit {
+  private readonly http = inject(HttpClient);
+  private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
+
+  private readonly API = `${environment.apiUrl}/{{recurso}}`;
+
+  items = signal<{{Entidade}}[]>([]);
+  totalElements = signal(0);
+  pageSize = signal(10);
+  pageIndex = signal(0);
+  loading = signal(false);
+  searchValue = '';
+
+  private searchTimeout: any;
+
+  ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.loading.set(true);
+    let params = `?page=${this.pageIndex()}&size=${this.pageSize()}&sort=createdAt,desc`;
+    if (this.searchValue?.trim()) {
+      params += `&search=${encodeURIComponent(this.searchValue.trim())}`;
+    }
+
+    this.http.get<PageResponse>(`${this.API}${params}`).subscribe({
+      next: (res) => {
+        this.items.set(res.content);
+        this.totalElements.set(res.totalElements);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.items.set([]);
+        this.loading.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Erro ao carregar dados',
+        });
+      },
+    });
+  }
+
+  onLazyLoad(event: TableLazyLoadEvent): void {
+    const first = event.first ?? 0;
+    const rows = event.rows ?? 10;
+    this.pageIndex.set(Math.floor(first / rows));
+    this.pageSize.set(rows);
+    this.load();
+  }
+
+  onSearch(): void {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.pageIndex.set(0);
+      this.load();
+    }, 400);
+  }
+
+  confirmDelete(item: {{Entidade}}): void {
+    this.confirmationService.confirm({
+      message: `Deseja realmente excluir "${item.nome}"?`,
+      header: 'Confirmar exclusão',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sim, excluir',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.delete(item.id),
+    });
+  }
+
+  private delete(id: string): void {
+    this.http.delete(`${this.API}/${id}`).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: '{{EntidadeLabel}} excluído com sucesso',
+        });
+        this.load();
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: err.error?.message || 'Erro ao excluir',
+        });
+      },
+    });
+  }
+
+  getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | undefined {
+    const map: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
+      ATIVO: 'success',
+      INATIVO: 'danger',
+      PENDENTE: 'warn',
+      CONCLUIDO: 'info',
+      CANCELADO: 'secondary',
+      // Adicionar mapeamentos conforme status do domínio
+    };
+    return map[status] ?? 'info';
+  }
+}
