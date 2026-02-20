@@ -5,6 +5,7 @@ import br.com.sdd.controleacademico.domain.model.Curso;
 import br.com.sdd.controleacademico.infrastructure.persistence.mapper.CursoMapper;
 import br.com.sdd.controleacademico.infrastructure.persistence.repository.SpringCursoRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,11 +52,13 @@ public class CursoRepositoryAdapter implements CursoRepositoryPort {
     }
 
     @Override
+    @Transactional
     public void adicionarDisciplina(UUID cursoId, UUID disciplinaId) {
         jpaRepository.adicionarDisciplina(cursoId, disciplinaId);
     }
 
     @Override
+    @Transactional
     public void removerDisciplina(UUID cursoId, UUID disciplinaId) {
         jpaRepository.removerDisciplina(cursoId, disciplinaId);
     }
@@ -63,5 +66,10 @@ public class CursoRepositoryAdapter implements CursoRepositoryPort {
     @Override
     public List<UUID> listarDisciplinaIds(UUID cursoId) {
         return jpaRepository.listarDisciplinaIds(cursoId);
+    }
+
+    @Override
+    public boolean existeRelacaoDisciplina(UUID cursoId, UUID disciplinaId) {
+        return jpaRepository.existeRelacao(cursoId, disciplinaId);
     }
 }

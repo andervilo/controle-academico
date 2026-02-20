@@ -5,6 +5,7 @@ import br.com.sdd.controleacademico.domain.model.Disciplina;
 import br.com.sdd.controleacademico.infrastructure.persistence.mapper.DisciplinaMapper;
 import br.com.sdd.controleacademico.infrastructure.persistence.repository.SpringDisciplinaRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,11 +52,13 @@ public class DisciplinaRepositoryAdapter implements DisciplinaRepositoryPort {
     }
 
     @Override
+    @Transactional
     public void adicionarProfessor(UUID disciplinaId, UUID professorId) {
         jpaRepository.adicionarProfessor(disciplinaId, professorId);
     }
 
     @Override
+    @Transactional
     public void removerProfessor(UUID disciplinaId, UUID professorId) {
         jpaRepository.removerProfessor(disciplinaId, professorId);
     }
@@ -63,5 +66,15 @@ public class DisciplinaRepositoryAdapter implements DisciplinaRepositoryPort {
     @Override
     public List<UUID> listarProfessorIds(UUID disciplinaId) {
         return jpaRepository.listarProfessorIds(disciplinaId);
+    }
+
+    @Override
+    public List<Disciplina> listarPorProfessor(UUID professorId) {
+        return jpaRepository.listarPorProfessor(professorId).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public boolean existeRelacaoProfessor(UUID disciplinaId, UUID professorId) {
+        return jpaRepository.existeRelacao(disciplinaId, professorId);
     }
 }

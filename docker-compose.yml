@@ -1,4 +1,14 @@
 services:
+  # ── Frontend (Angular + Nginx) ──
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  # ── Backend (Spring Boot) ──
   app:
     build: .
     ports:
@@ -11,7 +21,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
 
+  # ── Banco de Dados (PostgreSQL) ──
   db:
     image: postgres:16-alpine
     restart: always
@@ -24,7 +36,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5

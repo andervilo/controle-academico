@@ -22,4 +22,6 @@ public interface TurmaRepositoryPort {
     void removerAluno(UUID turmaId, UUID alunoId);
 
     List<UUID> listarAlunoIds(UUID turmaId);
+
+    boolean existeRelacaoAluno(UUID turmaId, UUID alunoId);
 }

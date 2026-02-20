@@ -5,6 +5,7 @@ import br.com.sdd.controleacademico.domain.model.Turma;
 import br.com.sdd.controleacademico.infrastructure.persistence.mapper.TurmaMapper;
 import br.com.sdd.controleacademico.infrastructure.persistence.repository.SpringTurmaRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,11 +47,13 @@ public class TurmaRepositoryAdapter implements TurmaRepositoryPort {
     }
 
     @Override
+    @Transactional
     public void adicionarAluno(UUID turmaId, UUID alunoId) {
         jpaRepository.adicionarAluno(turmaId, alunoId);
     }
 
     @Override
+    @Transactional
     public void removerAluno(UUID turmaId, UUID alunoId) {
         jpaRepository.removerAluno(turmaId, alunoId);
     }
@@ -58,5 +61,10 @@ public class TurmaRepositoryAdapter implements TurmaRepositoryPort {
     @Override
     public List<UUID> listarAlunoIds(UUID turmaId) {
         return jpaRepository.listarAlunoIds(turmaId);
+    }
+
+    @Override
+    public boolean existeRelacaoAluno(UUID turmaId, UUID alunoId) {
+        return jpaRepository.existeRelacao(turmaId, alunoId);
     }
 }

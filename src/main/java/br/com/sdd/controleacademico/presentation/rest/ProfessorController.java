@@ -2,6 +2,7 @@ package br.com.sdd.controleacademico.presentation.rest;
 
 import br.com.sdd.controleacademico.application.port.in.*;
 import br.com.sdd.controleacademico.domain.model.DiaSemana;
+import br.com.sdd.controleacademico.domain.model.Disciplina;
 import br.com.sdd.controleacademico.domain.model.Professor;
 import br.com.sdd.controleacademico.domain.model.ProfessorDisponibilidade;
 import br.com.sdd.controleacademico.domain.model.TurmaDisciplinaProfessor;
@@ -28,6 +29,9 @@ public class ProfessorController {
     private final ListarProfessoresUseCase listarUseCase;
     private final GerenciarProfessorDisponibilidadeUseCase disponibilidadeUseCase;
     private final GerenciarTurmaDisciplinaProfessorUseCase gerenciarTDPUseCase;
+    private final GerenciarProfessorDisciplinaUseCase gerenciarProfessorDisciplinaUseCase;
+    private final BuscarDisciplinaUseCase buscarDisciplinaUseCase;
+    private final BuscarTurmaUseCase buscarTurmaUseCase;
 
     public ProfessorController(CriarProfessorUseCase criarUseCase,
             BuscarProfessorUseCase buscarUseCase,
@@ -35,7 +39,10 @@ public class ProfessorController {
             DeletarProfessorUseCase deletarUseCase,
             ListarProfessoresUseCase listarUseCase,
             GerenciarProfessorDisponibilidadeUseCase disponibilidadeUseCase,
-            GerenciarTurmaDisciplinaProfessorUseCase gerenciarTDPUseCase) {
+            GerenciarTurmaDisciplinaProfessorUseCase gerenciarTDPUseCase,
+            GerenciarProfessorDisciplinaUseCase gerenciarProfessorDisciplinaUseCase,
+            BuscarDisciplinaUseCase buscarDisciplinaUseCase,
+            BuscarTurmaUseCase buscarTurmaUseCase) {
         this.criarUseCase = criarUseCase;
         this.buscarUseCase = buscarUseCase;
         this.atualizarUseCase = atualizarUseCase;
@@ -43,6 +50,9 @@ public class ProfessorController {
         this.listarUseCase = listarUseCase;
         this.disponibilidadeUseCase = disponibilidadeUseCase;
         this.gerenciarTDPUseCase = gerenciarTDPUseCase;
+        this.gerenciarProfessorDisciplinaUseCase = gerenciarProfessorDisciplinaUseCase;
+        this.buscarDisciplinaUseCase = buscarDisciplinaUseCase;
+        this.buscarTurmaUseCase = buscarTurmaUseCase;
     }
 
     @PostMapping
@@ -118,6 +128,33 @@ public class ProfessorController {
                 .map(this::toTDPResponse).toList());
     }
 
+    // ── Disciplinas Habilitadas ────────────────────────────
+    @GetMapping("/{professorId}/disciplinas")
+    @Operation(summary = "Listar disciplinas que o professor está habilitado a ministrar")
+    public ResponseEntity<List<DisciplinaResponse>> listarDisciplinas(@PathVariable UUID professorId) {
+        return ResponseEntity.ok(gerenciarProfessorDisciplinaUseCase.listarPorProfessor(professorId).stream()
+                .map(this::toDisciplinaResponse).toList());
+    }
+
+    @PostMapping("/{professorId}/disciplinas/{disciplinaId}")
+    @Operation(summary = "Habilitar professor em uma disciplina")
+    public ResponseEntity<Void> habilitarDisciplina(@PathVariable UUID professorId, @PathVariable UUID disciplinaId) {
+        gerenciarProfessorDisciplinaUseCase.adicionarProfessor(disciplinaId, professorId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{professorId}/disciplinas/{disciplinaId}")
+    @Operation(summary = "Desabilitar professor de uma disciplina")
+    public ResponseEntity<Void> deshabilitarDisciplina(@PathVariable UUID professorId,
+            @PathVariable UUID disciplinaId) {
+        gerenciarProfessorDisciplinaUseCase.removerProfessor(disciplinaId, professorId);
+        return ResponseEntity.noContent().build();
+    }
+
+    private DisciplinaResponse toDisciplinaResponse(Disciplina d) {
+        return new DisciplinaResponse(d.getId(), d.getNome(), d.getCodigo(), d.getCargaHoraria());
+    }
+
     private ProfessorResponse toResponse(Professor p) {
         return new ProfessorResponse(p.getId(), p.getNome(), p.getCpf(), p.getEmail(), p.getTelefone());
     }
@@ -128,8 +165,15 @@ public class ProfessorController {
     }
 
     private TurmaDisciplinaProfessorResponse toTDPResponse(TurmaDisciplinaProfessor tdp) {
-        return new TurmaDisciplinaProfessorResponse(tdp.getId(), tdp.getTurmaId(), tdp.getDisciplinaId(),
-                tdp.getProfessorId(), tdp.getAnoLetivoId(), tdp.getDiaSemana().name(),
+        String turmaNome = buscarTurmaUseCase.buscarPorId(tdp.getTurmaId())
+                .map(t -> t.getNome()).orElse("N/A");
+        String disciplinaNome = buscarDisciplinaUseCase.buscarPorId(tdp.getDisciplinaId())
+                .map(d -> d.getNome()).orElse("N/A");
+        String professorNome = buscarUseCase.buscarPorId(tdp.getProfessorId())
+                .map(p -> p.getNome()).orElse("N/A");
+
+        return new TurmaDisciplinaProfessorResponse(tdp.getId(), tdp.getTurmaId(), turmaNome, tdp.getDisciplinaId(),
+                disciplinaNome, tdp.getProfessorId(), professorNome, tdp.getAnoLetivoId(), tdp.getDiaSemana().name(),
                 tdp.getHoraInicio(), tdp.getHoraFim());
     }
 }

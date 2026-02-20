@@ -24,4 +24,8 @@ public interface DisciplinaRepositoryPort {
     void removerProfessor(UUID disciplinaId, UUID professorId);
 
     List<UUID> listarProfessorIds(UUID disciplinaId);
+
+    List<Disciplina> listarPorProfessor(UUID professorId);
+
+    boolean existeRelacaoProfessor(UUID disciplinaId, UUID professorId);
 }

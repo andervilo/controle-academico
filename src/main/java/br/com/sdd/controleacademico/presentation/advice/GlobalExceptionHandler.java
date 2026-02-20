@@ -1,6 +1,8 @@
 package br.com.sdd.controleacademico.presentation.advice;
 
 import br.com.sdd.controleacademico.domain.exception.RegraDeNegocioException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -10,6 +12,8 @@ import java.net.URI;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(RegraDeNegocioException.class)
     ProblemDetail handleRegraDeNegocio(RegraDeNegocioException e) {
@@ -22,6 +26,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     ProblemDetail handleGeral(Exception e) {
+        log.error("Erro inesperado: {}", e.getMessage(), e);
         ProblemDetail problemDetail = ProblemDetail.forStatus(500);
         problemDetail.setTitle("Erro Interno do Servidor");
         problemDetail.setDetail("Ocorreu um erro inesperado. Contate o suporte.");

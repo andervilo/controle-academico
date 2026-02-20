@@ -23,6 +23,11 @@ public class GerenciarTurmaAlunoService implements GerenciarTurmaAlunoUseCase {
                 .orElseThrow(() -> new RegraDeNegocioException("Turma não encontrada"));
         alunoRepository.buscarPorId(alunoId)
                 .orElseThrow(() -> new RegraDeNegocioException("Aluno não encontrado"));
+
+        if (turmaRepository.existeRelacaoAluno(turmaId, alunoId)) {
+            throw new RegraDeNegocioException("Este aluno já está matriculado nesta turma");
+        }
+
         turmaRepository.adicionarAluno(turmaId, alunoId);
     }
 

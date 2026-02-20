@@ -24,4 +24,6 @@ public interface CursoRepositoryPort {
     void removerDisciplina(UUID cursoId, UUID disciplinaId);
 
     List<UUID> listarDisciplinaIds(UUID cursoId);
+
+    boolean existeRelacaoDisciplina(UUID cursoId, UUID disciplinaId);
 }

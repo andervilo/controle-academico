@@ -30,6 +30,8 @@ public class TurmaController {
     private final ListarTurmasUseCase listarUseCase;
     private final GerenciarTurmaAlunoUseCase gerenciarAlunoUseCase;
     private final GerenciarTurmaDisciplinaProfessorUseCase gerenciarTDPUseCase;
+    private final BuscarDisciplinaUseCase buscarDisciplinaUseCase;
+    private final BuscarProfessorUseCase buscarProfessorUseCase;
 
     public TurmaController(CriarTurmaUseCase criarUseCase,
             BuscarTurmaUseCase buscarUseCase,
@@ -37,7 +39,9 @@ public class TurmaController {
             DeletarTurmaUseCase deletarUseCase,
             ListarTurmasUseCase listarUseCase,
             GerenciarTurmaAlunoUseCase gerenciarAlunoUseCase,
-            GerenciarTurmaDisciplinaProfessorUseCase gerenciarTDPUseCase) {
+            GerenciarTurmaDisciplinaProfessorUseCase gerenciarTDPUseCase,
+            BuscarDisciplinaUseCase buscarDisciplinaUseCase,
+            BuscarProfessorUseCase buscarProfessorUseCase) {
         this.criarUseCase = criarUseCase;
         this.buscarUseCase = buscarUseCase;
         this.atualizarUseCase = atualizarUseCase;
@@ -45,6 +49,8 @@ public class TurmaController {
         this.listarUseCase = listarUseCase;
         this.gerenciarAlunoUseCase = gerenciarAlunoUseCase;
         this.gerenciarTDPUseCase = gerenciarTDPUseCase;
+        this.buscarDisciplinaUseCase = buscarDisciplinaUseCase;
+        this.buscarProfessorUseCase = buscarProfessorUseCase;
     }
 
     @PostMapping
@@ -132,8 +138,15 @@ public class TurmaController {
     }
 
     private TurmaDisciplinaProfessorResponse toTDPResponse(TurmaDisciplinaProfessor tdp) {
-        return new TurmaDisciplinaProfessorResponse(tdp.getId(), tdp.getTurmaId(), tdp.getDisciplinaId(),
-                tdp.getProfessorId(), tdp.getAnoLetivoId(), tdp.getDiaSemana().name(),
+        String turmaNome = buscarUseCase.buscarPorId(tdp.getTurmaId())
+                .map(t -> t.getNome()).orElse("N/A");
+        String disciplinaNome = buscarDisciplinaUseCase.buscarPorId(tdp.getDisciplinaId())
+                .map(d -> d.getNome()).orElse("N/A");
+        String professorNome = buscarProfessorUseCase.buscarPorId(tdp.getProfessorId())
+                .map(p -> p.getNome()).orElse("N/A");
+
+        return new TurmaDisciplinaProfessorResponse(tdp.getId(), tdp.getTurmaId(), turmaNome, tdp.getDisciplinaId(),
+                disciplinaNome, tdp.getProfessorId(), professorNome, tdp.getAnoLetivoId(), tdp.getDiaSemana().name(),
                 tdp.getHoraInicio(), tdp.getHoraFim());
     }
 }

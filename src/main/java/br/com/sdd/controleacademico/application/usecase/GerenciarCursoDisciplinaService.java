@@ -23,6 +23,11 @@ public class GerenciarCursoDisciplinaService implements GerenciarCursoDisciplina
                 .orElseThrow(() -> new RegraDeNegocioException("Curso não encontrado"));
         disciplinaRepository.buscarPorId(disciplinaId)
                 .orElseThrow(() -> new RegraDeNegocioException("Disciplina não encontrada"));
+
+        if (cursoRepository.existeRelacaoDisciplina(cursoId, disciplinaId)) {
+            throw new RegraDeNegocioException("Esta disciplina já faz parte deste curso");
+        }
+
         cursoRepository.adicionarDisciplina(cursoId, disciplinaId);
     }
 
