@@ -93,6 +93,10 @@ export const routes: Routes = [
                 path: 'disponibilidade',
                 loadComponent: () => import('@/app/pages/disponibilidade/disponibilidade').then((m) => m.DisponibilidadeComponent),
             },
+            {
+                path: 'configuracoes',
+                loadComponent: () => import('@/app/pages/configuracoes/configuracoes').then((m) => m.ConfiguracoesComponent),
+            },
         ],
     },
     { path: '**', redirectTo: '' },
