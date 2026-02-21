@@ -17,6 +17,7 @@ import { environment } from '@/environments/environment';
 interface Aluno {
   id: string;
   nome: string;
+  matricula: string;
   cpf: string;
   dataNascimento: string;
   email: string;
@@ -52,6 +53,7 @@ interface Aluno {
         </ng-template>
         <ng-template #header>
           <tr>
+            <th>Matrícula</th>
             <th>Nome</th>
             <th>CPF</th>
             <th>E-mail</th>
@@ -61,6 +63,7 @@ interface Aluno {
         </ng-template>
         <ng-template #body let-item>
           <tr>
+            <td class="font-bold text-primary">{{ item.matricula }}</td>
             <td>{{ item.nome }}</td>
             <td>{{ item.cpf }}</td>
             <td>{{ item.email }}</td>
@@ -74,7 +77,7 @@ interface Aluno {
           </tr>
         </ng-template>
         <ng-template #emptymessage>
-          <tr><td colspan="5" class="text-center p-6 text-muted-color"><i class="pi pi-inbox text-4xl mb-4 block"></i>Nenhum aluno encontrado.</td></tr>
+          <tr><td colspan="6" class="text-center p-6 text-muted-color"><i class="pi pi-inbox text-4xl mb-4 block"></i>Nenhum aluno encontrado.</td></tr>
         </ng-template>
       </p-table>
     </div>
@@ -103,7 +106,11 @@ export class AlunoListComponent implements OnInit {
 
   onSearch() {
     const s = this.searchValue.toLowerCase();
-    this.items.set(this.allItems().filter((i) => i.nome.toLowerCase().includes(s) || i.cpf.includes(s)));
+    this.items.set(this.allItems().filter((i) =>
+      i.nome.toLowerCase().includes(s) ||
+      i.cpf.includes(s) ||
+      (i.matricula && i.matricula.toLowerCase().includes(s))
+    ));
   }
 
   confirmDelete(item: Aluno) {

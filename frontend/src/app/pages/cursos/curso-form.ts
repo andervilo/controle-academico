@@ -10,12 +10,15 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { TextareaModule } from 'primeng/textarea';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { environment } from '@/environments/environment';
+import { forkJoin, map, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-curso-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonModule, InputTextModule, CardModule, ToastModule, FloatLabelModule, TextareaModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonModule, InputTextModule, CardModule, ToastModule, FloatLabelModule, TextareaModule, MultiSelectModule],
   providers: [MessageService],
   template: `
     <p-toast />
@@ -37,6 +40,12 @@ import { environment } from '@/environments/environment';
           <div class="col-span-12">
             <p-floatlabel variant="on"><textarea pTextarea id="descricao" formControlName="descricao" rows="3" class="w-full"></textarea><label for="descricao">Descrição</label></p-floatlabel>
           </div>
+          <div class="col-span-12">
+            <p-floatlabel variant="on">
+              <p-multiselect id="disciplinas" formControlName="disciplinaIds" [options]="disciplinas()" optionLabel="nome" optionValue="id" [filter]="true" class="w-full" display="chip" />
+              <label for="disciplinas">Disciplinas do Curso</label>
+            </p-floatlabel>
+          </div>
         </div>
         <div class="flex gap-3 mt-6">
           <p-button [label]="isEdit() ? 'Salvar' : 'Cadastrar'" icon="pi pi-check" type="submit" [loading]="loading()" />
@@ -57,22 +66,67 @@ export class CursoFormComponent implements OnInit {
   form = this.fb.group({
     nome: ['', Validators.required],
     codigo: ['', Validators.required],
-    descricao: ['']
+    descricao: [''],
+    disciplinaIds: [[] as string[]]
   });
   isEdit = signal(false); loading = signal(false); recordId = signal<string | null>(null);
+  disciplinas = signal<any[]>([]);
 
   ngOnInit() {
+    this.http.get<any[]>(`${environment.apiUrl}/disciplinas`).subscribe({ next: (res) => this.disciplinas.set(res) });
     const id = this.route.snapshot.paramMap.get('id');
-    if (id) { this.isEdit.set(true); this.recordId.set(id); this.http.get<any>(`${this.API}/${id}`).subscribe({ next: (d) => this.form.patchValue(d) }); }
+    if (id) {
+      this.isEdit.set(true);
+      this.recordId.set(id);
+      forkJoin({
+        curso: this.http.get<any>(`${this.API}/${id}`),
+        disciplinas: this.http.get<any[]>(`${this.API}/${id}/disciplinas`).pipe(catchError(() => of([])))
+      }).subscribe({
+        next: (data) => {
+          this.form.patchValue({
+            ...data.curso,
+            disciplinaIds: data.disciplinas.map(d => d.id)
+          });
+        }
+      });
+    }
   }
 
   onSubmit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha os campos obrigatórios' }); return; }
     this.loading.set(true);
-    const req$ = this.isEdit() ? this.http.put(`${this.API}/${this.recordId()}`, this.form.value) : this.http.post(this.API, this.form.value);
+    const { disciplinaIds, ...cursoData } = this.form.value;
+    const req$ = this.isEdit() ? this.http.put<any>(`${this.API}/${this.recordId()}`, cursoData) : this.http.post<any>(this.API, cursoData);
+
     req$.subscribe({
-      next: () => { this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.isEdit() ? 'Curso atualizado' : 'Curso cadastrado' }); setTimeout(() => this.router.navigate(['/cursos']), 1000); },
+      next: (curso) => {
+        const id = this.isEdit() ? this.recordId() : curso.id;
+        // Sync disciplines
+        this.http.get<any[]>(`${this.API}/${id}/disciplinas`).pipe(
+          catchError(() => of([])),
+          map(curr => {
+            const currIds = curr.map(d => d.id);
+            const toAdd = (disciplinaIds || []).filter(dId => !currIds.includes(dId));
+            const toRemove = currIds.filter(dId => !(disciplinaIds || []).includes(dId));
+            return { toAdd, toRemove };
+          })
+        ).subscribe(diff => {
+          const addActions = diff.toAdd.map(dId => this.http.post(`${this.API}/${id}/disciplinas/${dId}`, {}));
+          const removeActions = diff.toRemove.map(dId => this.http.delete(`${this.API}/${id}/disciplinas/${dId}`));
+
+          if (addActions.length === 0 && removeActions.length === 0) {
+            this.finishSubmit();
+          } else {
+            forkJoin([...addActions, ...removeActions]).subscribe(() => this.finishSubmit());
+          }
+        });
+      },
       error: (err) => { this.loading.set(false); this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.detail || err.error?.message || 'Erro ao salvar' }); },
     });
+  }
+
+  private finishSubmit() {
+    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.isEdit() ? 'Curso atualizado' : 'Curso cadastrado' });
+    setTimeout(() => this.router.navigate(['/cursos']), 1000);
   }
 }

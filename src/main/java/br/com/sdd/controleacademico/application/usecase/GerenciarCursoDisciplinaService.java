@@ -5,6 +5,7 @@ import br.com.sdd.controleacademico.application.port.out.CursoRepositoryPort;
 import br.com.sdd.controleacademico.application.port.out.DisciplinaRepositoryPort;
 import br.com.sdd.controleacademico.domain.exception.RegraDeNegocioException;
 
+import java.util.List;
 import java.util.UUID;
 
 public class GerenciarCursoDisciplinaService implements GerenciarCursoDisciplinaUseCase {
@@ -34,5 +35,12 @@ public class GerenciarCursoDisciplinaService implements GerenciarCursoDisciplina
     @Override
     public void removerDisciplina(UUID cursoId, UUID disciplinaId) {
         cursoRepository.removerDisciplina(cursoId, disciplinaId);
+    }
+
+    @Override
+    public List<UUID> listarDisciplinaIds(UUID cursoId) {
+        cursoRepository.buscarPorId(cursoId)
+                .orElseThrow(() -> new RegraDeNegocioException("Curso não encontrado"));
+        return cursoRepository.listarDisciplinaIds(cursoId);
     }
 }
