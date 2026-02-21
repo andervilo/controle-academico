@@ -28,10 +28,11 @@ public class AlunoEntity {
     private String matricula;
     private String cpf;
     private String email;
+    private String telefone;
     private LocalDate dataNascimento;
 
-    @Column(name = "responsavel_financeiro_id")
-    private UUID responsavelFinanceiroId;
+    @Column(name = "responsavel_id")
+    private UUID responsavelId;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -39,6 +40,16 @@ public class AlunoEntity {
     private boolean deleted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "responsavel_financeiro_id", insertable = false, updatable = false)
-    private ResponsavelFinanceiroEntity responsavelFinanceiro;
+    @JoinColumn(name = "responsavel_id", insertable = false, updatable = false)
+    private ResponsavelEntity responsavel;
+
+    @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<AlunoResponsavelEntity> responsaveis = new java.util.ArrayList<>();
+
+    public java.util.List<AlunoResponsavelEntity> getResponsaveis() {
+        if (this.responsaveis == null) {
+            this.responsaveis = new java.util.ArrayList<>();
+        }
+        return this.responsaveis;
+    }
 }

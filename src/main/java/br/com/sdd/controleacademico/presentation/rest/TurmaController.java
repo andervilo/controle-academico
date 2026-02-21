@@ -179,7 +179,7 @@ public class TurmaController {
     }
 
     private AlunoResponse toAlunoResponse(Aluno a) {
-        return new AlunoResponse(a.getId(), a.getNome(), a.getMatricula(), a.getCpf(), a.getEmail(),
-                a.getDataNascimento(), a.getResponsavelFinanceiroId());
+        return new AlunoResponse(a.getId(), a.getNome(), a.getMatricula(), a.getCpf(), a.getEmail(), a.getTelefone(),
+                a.getDataNascimento(), a.getResponsavelId());
     }
 }

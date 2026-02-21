@@ -9,12 +9,13 @@ import { CardModule } from 'primeng/card';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { FloatLabelModule } from 'primeng/floatlabel';
+import { TextareaModule } from 'primeng/textarea';
 import { environment } from '@/environments/environment';
 
 @Component({
   selector: 'app-curso-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonModule, InputTextModule, CardModule, ToastModule, FloatLabelModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonModule, InputTextModule, CardModule, ToastModule, FloatLabelModule, TextareaModule],
   providers: [MessageService],
   template: `
     <p-toast />
@@ -27,6 +28,14 @@ import { environment } from '@/environments/environment';
         <div class="grid grid-cols-12 gap-6">
           <div class="col-span-12 md:col-span-6">
             <p-floatlabel variant="on"><input pInputText id="nome" formControlName="nome" class="w-full" /><label for="nome">Nome *</label></p-floatlabel>
+            @if (form.get('nome')?.hasError('required') && form.get('nome')?.touched) { <small class="text-red-500 mt-1 block">Nome é obrigatório</small> }
+          </div>
+          <div class="col-span-12 md:col-span-6">
+            <p-floatlabel variant="on"><input pInputText id="codigo" formControlName="codigo" class="w-full" /><label for="codigo">Código *</label></p-floatlabel>
+            @if (form.get('codigo')?.hasError('required') && form.get('codigo')?.touched) { <small class="text-red-500 mt-1 block">Código é obrigatório</small> }
+          </div>
+          <div class="col-span-12">
+            <p-floatlabel variant="on"><textarea pTextarea id="descricao" formControlName="descricao" rows="3" class="w-full"></textarea><label for="descricao">Descrição</label></p-floatlabel>
           </div>
         </div>
         <div class="flex gap-3 mt-6">
@@ -44,7 +53,12 @@ export class CursoFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly messageService = inject(MessageService);
   private readonly API = `${environment.apiUrl}/cursos`;
-  form = this.fb.group({ nome: ['', Validators.required] });
+
+  form = this.fb.group({
+    nome: ['', Validators.required],
+    codigo: ['', Validators.required],
+    descricao: ['']
+  });
   isEdit = signal(false); loading = signal(false); recordId = signal<string | null>(null);
 
   ngOnInit() {
@@ -53,7 +67,7 @@ export class CursoFormComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) { this.form.markAllAsTouched(); this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha os campos obrigatórios' }); return; }
     this.loading.set(true);
     const req$ = this.isEdit() ? this.http.put(`${this.API}/${this.recordId()}`, this.form.value) : this.http.post(this.API, this.form.value);
     req$.subscribe({

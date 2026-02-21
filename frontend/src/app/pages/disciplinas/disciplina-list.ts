@@ -35,10 +35,10 @@ import { environment } from '@/environments/environment';
             </p-iconfield>
           </div>
         </ng-template>
-        <ng-template #header><tr><th>Nome</th><th>Carga Horária</th><th style="width: 10rem">Ações</th></tr></ng-template>
+        <ng-template #header><tr><th>Nome</th><th>Código</th><th>Carga Horária</th><th style="width: 10rem">Ações</th></tr></ng-template>
         <ng-template #body let-item>
           <tr>
-            <td>{{ item.nome }}</td><td>{{ item.cargaHoraria }}h</td>
+            <td>{{ item.nome }}</td><td>{{ item.codigo }}</td><td>{{ item.cargaHoraria }}h</td>
             <td>
               <div class="flex gap-2">
                 <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" [routerLink]="['/disciplinas', item.id, 'editar']" />
@@ -47,7 +47,7 @@ import { environment } from '@/environments/environment';
             </td>
           </tr>
         </ng-template>
-        <ng-template #emptymessage><tr><td colspan="3" class="text-center p-6 text-muted-color"><i class="pi pi-inbox text-4xl mb-4 block"></i>Nenhuma disciplina encontrada.</td></tr></ng-template>
+        <ng-template #emptymessage><tr><td colspan="4" class="text-center p-6 text-muted-color"><i class="pi pi-inbox text-4xl mb-4 block"></i>Nenhuma disciplina encontrada.</td></tr></ng-template>
       </p-table>
     </div>
   `,

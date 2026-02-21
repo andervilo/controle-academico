@@ -3,7 +3,7 @@ package br.com.sdd.controleacademico.domain.model;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class ResponsavelFinanceiro {
+public class Responsavel {
     private UUID id;
     private String nome;
     private String cpf;
@@ -21,7 +21,7 @@ public class ResponsavelFinanceiro {
         validate();
     }
 
-    public ResponsavelFinanceiro(UUID id, String nome, String cpf, String email, String telefone,
+    public Responsavel(UUID id, String nome, String cpf, String email, String telefone,
             LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.nome = nome;
@@ -33,8 +33,8 @@ public class ResponsavelFinanceiro {
         validate();
     }
 
-    public static ResponsavelFinanceiro criar(String nome, String cpf, String email, String telefone) {
-        return new ResponsavelFinanceiro(UUID.randomUUID(), nome, cpf, email, telefone, LocalDateTime.now(), null);
+    public static Responsavel criar(String nome, String cpf, String email, String telefone) {
+        return new Responsavel(UUID.randomUUID(), nome, cpf, email, telefone, LocalDateTime.now(), null);
     }
 
     private void validate() {

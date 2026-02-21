@@ -27,17 +27,19 @@ import { environment } from '@/environments/environment';
     </p-toolbar>
     <div class="card">
       <p-table [value]="items()" [loading]="loading()" [tableStyle]="{ 'min-width': '30rem' }" dataKey="id">
-        <ng-template #header><tr><th>Nome</th><th style="width: 10rem">Ações</th></tr></ng-template>
+        <ng-template #header><tr><th>Nome</th><th>Código</th><th>Descrição</th><th style="width: 10rem">Ações</th></tr></ng-template>
         <ng-template #body let-item>
           <tr>
             <td>{{ item.nome }}</td>
+            <td>{{ item.codigo }}</td>
+            <td>{{ item.descricao }}</td>
             <td><div class="flex gap-2">
               <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" [routerLink]="['/cursos', item.id, 'editar']" />
               <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (click)="confirmDelete(item)" />
             </div></td>
           </tr>
         </ng-template>
-        <ng-template #emptymessage><tr><td colspan="2" class="text-center p-6 text-muted-color"><i class="pi pi-inbox text-4xl mb-4 block"></i>Nenhum curso encontrado.</td></tr></ng-template>
+        <ng-template #emptymessage><tr><td colspan="4" class="text-center p-6 text-muted-color"><i class="pi pi-inbox text-4xl mb-4 block"></i>Nenhum curso encontrado.</td></tr></ng-template>
       </p-table>
     </div>
   `,

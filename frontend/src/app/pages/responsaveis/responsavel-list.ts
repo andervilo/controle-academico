@@ -18,7 +18,7 @@ import { environment } from '@/environments/environment';
   template: `
     <p-toast /><p-confirmdialog />
     <p-toolbar styleClass="mb-6 gap-2">
-      <ng-template #start><h2 class="m-0 text-color font-bold text-2xl">Responsáveis Financeiros</h2></ng-template>
+      <ng-template #start><h2 class="m-0 text-color font-bold text-2xl">Responsáveis</h2></ng-template>
       <ng-template #end><p-button label="Novo Responsável" icon="pi pi-plus" severity="primary" routerLink="/responsaveis/novo" /></ng-template>
     </p-toolbar>
     <div class="card">
@@ -42,7 +42,7 @@ export class ResponsavelListComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
-  private readonly API = `${environment.apiUrl}/responsaveis-financeiros`;
+  private readonly API = `${environment.apiUrl}/responsaveis`;
   items = signal<any[]>([]); loading = signal(false);
   ngOnInit() { this.load(); }
   load() { this.loading.set(true); this.http.get<any[]>(this.API).subscribe({ next: (r) => { this.items.set(r); this.loading.set(false); }, error: () => this.loading.set(false) }); }

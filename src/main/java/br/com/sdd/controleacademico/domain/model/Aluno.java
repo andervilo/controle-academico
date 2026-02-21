@@ -10,38 +10,44 @@ public class Aluno {
     private String matricula;
     private String cpf;
     private String email;
+    private String telefone;
     private LocalDate dataNascimento;
-    private UUID responsavelFinanceiroId;
+    private UUID responsavelId;
+    private java.util.List<AlunoResponsavel> responsaveis = new java.util.ArrayList<>();
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     // Construtor auxiliar para atualização
-    public void atualizar(String nome, String email, LocalDate dataNascimento, UUID responsavelFinanceiroId) {
+    public void atualizar(String nome, String email, String telefone, LocalDate dataNascimento, UUID responsavelId) {
         this.nome = nome;
         this.email = email;
+        this.telefone = telefone;
         this.dataNascimento = dataNascimento;
-        this.responsavelFinanceiroId = responsavelFinanceiroId;
+        this.responsavelId = responsavelId;
         this.updatedAt = LocalDateTime.now();
         validate();
     }
 
-    public Aluno(UUID id, String nome, String matricula, String cpf, String email, LocalDate dataNascimento,
-            UUID responsavelFinanceiroId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Aluno(UUID id, String nome, String matricula, String cpf, String email, String telefone,
+            LocalDate dataNascimento,
+            UUID responsavelId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.nome = nome;
         this.matricula = matricula;
         this.cpf = cpf;
         this.email = email;
+        this.telefone = telefone;
         this.dataNascimento = dataNascimento;
-        this.responsavelFinanceiroId = responsavelFinanceiroId;
+        this.responsavelId = responsavelId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         validate();
     }
 
-    public static Aluno criar(String nome, String matricula, String cpf, String email, LocalDate dataNascimento,
-            UUID responsavelFinanceiroId) {
-        return new Aluno(UUID.randomUUID(), nome, matricula, cpf, email, dataNascimento, responsavelFinanceiroId,
+    public static Aluno criar(String nome, String matricula, String cpf, String email, String telefone,
+            LocalDate dataNascimento,
+            UUID responsavelId) {
+        return new Aluno(UUID.randomUUID(), nome, matricula, cpf, email, telefone, dataNascimento, responsavelId,
                 LocalDateTime.now(), null);
     }
 
@@ -54,7 +60,7 @@ public class Aluno {
             throw new IllegalArgumentException("Email é obrigatório");
         if (dataNascimento == null)
             throw new IllegalArgumentException("Data de nascimento é obrigatória");
-        if (responsavelFinanceiroId == null)
+        if (responsavelId == null)
             throw new IllegalArgumentException("Responsável Financeiro é obrigatório");
     }
 
@@ -79,12 +85,16 @@ public class Aluno {
         return email;
     }
 
+    public String getTelefone() {
+        return telefone;
+    }
+
     public LocalDate getDataNascimento() {
         return dataNascimento;
     }
 
-    public UUID getResponsavelFinanceiroId() {
-        return responsavelFinanceiroId;
+    public UUID getResponsavelId() {
+        return responsavelId;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -93,5 +103,9 @@ public class Aluno {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public java.util.List<AlunoResponsavel> getResponsaveis() {
+        return responsaveis;
     }
 }

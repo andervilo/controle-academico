@@ -44,7 +44,7 @@ export class ResponsavelFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly messageService = inject(MessageService);
-  private readonly API = `${environment.apiUrl}/responsaveis-financeiros`;
+  private readonly API = `${environment.apiUrl}/responsaveis`;
 
   form = this.fb.group({ nome: ['', Validators.required], cpf: ['', Validators.required], email: ['', [Validators.required, Validators.email]], telefone: ['', Validators.required] });
   isEdit = signal(false); loading = signal(false); recordId = signal<string | null>(null);

@@ -27,13 +27,17 @@ import { environment } from '@/environments/environment';
     <div class="card">
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="grid grid-cols-12 gap-6">
-          <div class="col-span-12 md:col-span-4">
+          <div class="col-span-12 md:col-span-3">
             <p-floatlabel variant="on"><p-inputnumber id="ano" formControlName="ano" [useGrouping]="false" [min]="2000" [max]="2099" class="w-full" /><label for="ano">Ano *</label></p-floatlabel>
           </div>
-          <div class="col-span-12 md:col-span-4">
+          <div class="col-span-12 md:col-span-3">
+            <p-floatlabel variant="on"><input pInputText id="descricao" formControlName="descricao" class="w-full" /><label for="descricao">Descrição *</label></p-floatlabel>
+            @if (form.get('descricao')?.hasError('required') && form.get('descricao')?.touched) { <small class="text-red-500 mt-1 block">Descrição é obrigatória</small> }
+          </div>
+          <div class="col-span-12 md:col-span-3">
             <p-floatlabel variant="on"><p-datepicker id="dataInicio" formControlName="dataInicio" dateFormat="dd/mm/yy" [showIcon]="true" class="w-full" /><label for="dataInicio">Data Início *</label></p-floatlabel>
           </div>
-          <div class="col-span-12 md:col-span-4">
+          <div class="col-span-12 md:col-span-3">
             <p-floatlabel variant="on"><p-datepicker id="dataFim" formControlName="dataFim" dateFormat="dd/mm/yy" [showIcon]="true" class="w-full" /><label for="dataFim">Data Fim *</label></p-floatlabel>
           </div>
         </div>
@@ -53,20 +57,22 @@ export class AnoLetivoFormComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly API = `${environment.apiUrl}/anos-letivos`;
 
-  form = this.fb.group({ ano: [null as number | null, Validators.required], dataInicio: [null as Date | null, Validators.required], dataFim: [null as Date | null, Validators.required] });
+  form = this.fb.group({ ano: [null as number | null, Validators.required], descricao: ['', Validators.required], dataInicio: [null as Date | null, Validators.required], dataFim: [null as Date | null, Validators.required] });
   isEdit = signal(false); loading = signal(false); recordId = signal<string | null>(null);
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    if (id) { this.isEdit.set(true); this.recordId.set(id); this.http.get<any>(`${this.API}/${id}`).subscribe({ next: (d) => this.form.patchValue({ ...d, dataInicio: d.dataInicio ? new Date(d.dataInicio) : null, dataFim: d.dataFim ? new Date(d.dataFim) : null }) }); }
+    const parseLocalDate = (s: string | null) => { if (!s) return null; const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+    if (id) { this.isEdit.set(true); this.recordId.set(id); this.http.get<any>(`${this.API}/${id}`).subscribe({ next: (d) => this.form.patchValue({ ...d, dataInicio: parseLocalDate(d.dataInicio), dataFim: parseLocalDate(d.dataFim) }) }); }
   }
 
   onSubmit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading.set(true);
     const data: any = { ...this.form.value };
-    if (data.dataInicio instanceof Date) data.dataInicio = data.dataInicio.toISOString().split('T')[0];
-    if (data.dataFim instanceof Date) data.dataFim = data.dataFim.toISOString().split('T')[0];
+    const formatDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (data.dataInicio instanceof Date) data.dataInicio = formatDate(data.dataInicio);
+    if (data.dataFim instanceof Date) data.dataFim = formatDate(data.dataFim);
     const req$ = this.isEdit() ? this.http.put(`${this.API}/${this.recordId()}`, data) : this.http.post(this.API, data);
     req$.subscribe({
       next: () => { this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.isEdit() ? 'Ano letivo atualizado' : 'Ano letivo cadastrado' }); setTimeout(() => this.router.navigate(['/anos-letivos']), 1000); },

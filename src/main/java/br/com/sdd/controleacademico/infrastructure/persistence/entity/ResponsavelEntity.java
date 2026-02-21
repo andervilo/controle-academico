@@ -15,14 +15,14 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(name = "responsavel_financeiro")
-@SQLDelete(sql = "UPDATE responsavel_financeiro SET deleted = true WHERE id=?")
+@Table(name = "responsavel")
+@SQLDelete(sql = "UPDATE responsavel SET deleted = true WHERE id=?")
 @SQLRestriction("deleted=false")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResponsavelFinanceiroEntity {
+public class ResponsavelEntity {
     @Id
     private UUID id;
     private String nome;

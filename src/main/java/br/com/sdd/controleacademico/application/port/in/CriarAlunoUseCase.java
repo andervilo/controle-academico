@@ -5,5 +5,5 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public interface CriarAlunoUseCase {
-    Aluno criar(String nome, String cpf, String email, LocalDate dataNascimento, UUID responsavelFinanceiroId);
+    Aluno criar(String nome, String cpf, String email, String telefone, LocalDate dataNascimento, UUID responsavelId);
 }

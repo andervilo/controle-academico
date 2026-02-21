@@ -26,14 +26,20 @@ import { environment } from '@/environments/environment';
     <div class="card">
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="grid grid-cols-12 gap-6">
-          <div class="col-span-12 md:col-span-6">
+          <div class="col-span-12 md:col-span-4">
             <p-floatlabel variant="on"><input pInputText id="nome" formControlName="nome" class="w-full" /><label for="nome">Nome *</label></p-floatlabel>
+            @if (form.get('nome')?.hasError('required') && form.get('nome')?.touched) { <small class="text-red-500 mt-1 block">Nome é obrigatório</small> }
           </div>
-          <div class="col-span-12 md:col-span-6">
+          <div class="col-span-12 md:col-span-4">
+            <p-floatlabel variant="on"><input pInputText id="codigo" formControlName="codigo" class="w-full" /><label for="codigo">Código *</label></p-floatlabel>
+            @if (form.get('codigo')?.hasError('required') && form.get('codigo')?.touched) { <small class="text-red-500 mt-1 block">Código é obrigatório</small> }
+          </div>
+          <div class="col-span-12 md:col-span-4">
             <p-floatlabel variant="on">
               <p-inputnumber id="cargaHoraria" formControlName="cargaHoraria" [min]="1" class="w-full" />
               <label for="cargaHoraria">Carga Horária (h) *</label>
             </p-floatlabel>
+            @if (form.get('cargaHoraria')?.hasError('required') && form.get('cargaHoraria')?.touched) { <small class="text-red-500 mt-1 block">Carga horária é obrigatória</small> }
           </div>
         </div>
         <div class="flex gap-3 mt-6">
@@ -52,7 +58,11 @@ export class DisciplinaFormComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly API = `${environment.apiUrl}/disciplinas`;
 
-  form = this.fb.group({ nome: ['', Validators.required], cargaHoraria: [null as number | null, Validators.required] });
+  form = this.fb.group({
+    nome: ['', Validators.required],
+    codigo: ['', Validators.required],
+    cargaHoraria: [null as number | null, Validators.required]
+  });
   isEdit = signal(false); loading = signal(false); recordId = signal<string | null>(null);
 
   ngOnInit() {

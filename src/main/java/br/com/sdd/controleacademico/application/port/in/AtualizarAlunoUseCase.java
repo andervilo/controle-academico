@@ -5,5 +5,5 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public interface AtualizarAlunoUseCase {
-    Aluno atualizar(UUID id, String nome, String email, LocalDate dataNascimento, UUID responsavelFinanceiroId);
+    Aluno atualizar(UUID id, String nome, String email, String telefone, LocalDate dataNascimento, UUID responsavelId);
 }

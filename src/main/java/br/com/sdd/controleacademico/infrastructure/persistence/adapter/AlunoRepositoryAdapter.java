@@ -16,10 +16,16 @@ public class AlunoRepositoryAdapter implements AlunoRepositoryPort {
 
     private final SpringAlunoRepository jpaRepository;
     private final AlunoMapper mapper;
+    private final br.com.sdd.controleacademico.infrastructure.persistence.mapper.ResponsavelMapper responsavelMapper;
+    private final br.com.sdd.controleacademico.infrastructure.persistence.repository.SpringAlunoResponsavelRepository alunoResponsavelRepository;
 
-    public AlunoRepositoryAdapter(SpringAlunoRepository jpaRepository, AlunoMapper mapper) {
+    public AlunoRepositoryAdapter(SpringAlunoRepository jpaRepository, AlunoMapper mapper,
+            br.com.sdd.controleacademico.infrastructure.persistence.mapper.ResponsavelMapper responsavelMapper,
+            br.com.sdd.controleacademico.infrastructure.persistence.repository.SpringAlunoResponsavelRepository alunoResponsavelRepository) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
+        this.responsavelMapper = responsavelMapper;
+        this.alunoResponsavelRepository = alunoResponsavelRepository;
     }
 
     @Override
@@ -54,6 +60,38 @@ public class AlunoRepositoryAdapter implements AlunoRepositoryPort {
     @Override
     public Aluno atualizar(Aluno aluno) {
         return salvar(aluno);
+    }
+
+    @Override
+    public void adicionarResponsavel(UUID alunoId, br.com.sdd.controleacademico.domain.model.AlunoResponsavel vinculo) {
+        br.com.sdd.controleacademico.infrastructure.persistence.entity.AlunoResponsavelEntity entity = new br.com.sdd.controleacademico.infrastructure.persistence.entity.AlunoResponsavelEntity();
+        entity.setId(vinculo.getId());
+        entity.setAlunoId(vinculo.getAlunoId());
+        entity.setResponsavelId(vinculo.getResponsavelId());
+        entity.setParentesco(vinculo.getParentesco());
+        entity.setPermiteBuscarEscola(vinculo.isPermiteBuscarEscola());
+        entity.setContatoEmergencia(vinculo.isContatoEmergencia());
+        entity.setCreatedAt(vinculo.getCreatedAt());
+        entity.setUpdatedAt(vinculo.getUpdatedAt());
+
+        alunoResponsavelRepository.save(entity);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<br.com.sdd.controleacademico.domain.model.AlunoResponsavelDetalhe> listarResponsaveisPorAluno(
+            UUID alunoId) {
+        var alunoEntityOptional = jpaRepository.findById(alunoId);
+        if (alunoEntityOptional.isPresent()) {
+            return alunoEntityOptional.get().getResponsaveis().stream()
+                    .map(vinculoEntity -> new br.com.sdd.controleacademico.domain.model.AlunoResponsavelDetalhe(
+                            responsavelMapper.toDomain(vinculoEntity.getResponsavel()),
+                            vinculoEntity.getParentesco(),
+                            vinculoEntity.isPermiteBuscarEscola(),
+                            vinculoEntity.isContatoEmergencia()))
+                    .toList();
+        }
+        return List.of();
     }
 
     @Override

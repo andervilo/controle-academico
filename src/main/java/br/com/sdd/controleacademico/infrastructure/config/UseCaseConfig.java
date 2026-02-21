@@ -25,48 +25,63 @@ public class UseCaseConfig {
 
     @Bean
     @Transactional
-    public CriarResponsavelFinanceiroUseCase criarResponsavelFinanceiroUseCase(
-            ResponsavelFinanceiroRepositoryPort repository) {
-        return new CriarResponsavelFinanceiroService(repository);
+    public CriarResponsavelUseCase criarResponsavelUseCase(
+            ResponsavelRepositoryPort repository) {
+        return new CriarResponsavelService(repository);
     }
 
     @Bean
     @Transactional(readOnly = true)
-    public BuscarResponsavelFinanceiroUseCase buscarResponsavelFinanceiroUseCase(
-            ResponsavelFinanceiroRepositoryPort repository) {
-        return new BuscarResponsavelFinanceiroService(repository);
+    public BuscarResponsavelUseCase buscarResponsavelUseCase(
+            ResponsavelRepositoryPort repository) {
+        return new BuscarResponsavelService(repository);
     }
 
     @Bean
     @Transactional
-    public AtualizarResponsavelFinanceiroUseCase atualizarResponsavelFinanceiroUseCase(
-            ResponsavelFinanceiroRepositoryPort repository) {
-        return new AtualizarResponsavelFinanceiroService(repository);
+    public AtualizarResponsavelUseCase atualizarResponsavelUseCase(
+            ResponsavelRepositoryPort repository) {
+        return new AtualizarResponsavelService(repository);
     }
 
     @Bean
     @Transactional
-    public DeletarResponsavelFinanceiroUseCase deletarResponsavelFinanceiroUseCase(
-            ResponsavelFinanceiroRepositoryPort repository) {
-        return new DeletarResponsavelFinanceiroService(repository);
+    public DeletarResponsavelUseCase deletarResponsavelUseCase(
+            ResponsavelRepositoryPort repository) {
+        return new DeletarResponsavelService(repository);
     }
 
     @Bean
     @Transactional(readOnly = true)
-    public ListarResponsaveisFinanceirosUseCase listarResponsaveisFinanceirosUseCase(
-            ResponsavelFinanceiroRepositoryPort repository) {
-        return new ListarResponsaveisFinanceirosService(repository);
+    public ListarResponsaveisUseCase listarResponsaveisUseCase(
+            ResponsavelRepositoryPort repository) {
+        return new ListarResponsaveisService(repository);
+    }
+
+    @Bean
+    @Transactional
+    public VincularResponsavelAlunoUseCase vincularResponsavelAlunoUseCase(
+            AlunoRepositoryPort alunoRepository,
+            ResponsavelRepositoryPort responsavelRepository) {
+        return new VincularResponsavelAlunoService(alunoRepository, responsavelRepository);
+    }
+
+    @Bean
+    @Transactional(readOnly = true)
+    public br.com.sdd.controleacademico.application.port.in.ListarResponsaveisPorAlunoUseCase listarResponsaveisPorAlunoUseCase(
+            AlunoRepositoryPort repository) {
+        return new br.com.sdd.controleacademico.application.usecase.ListarResponsaveisPorAlunoService(repository);
     }
 
     // ─────────────────────────────────────────────────────────
-    // Aluno
+    // Frequência
     // ─────────────────────────────────────────────────────────
 
     @Bean
     @Transactional
     public CriarAlunoUseCase criarAlunoUseCase(
             AlunoRepositoryPort alunoRepository,
-            ResponsavelFinanceiroRepositoryPort responsavelRepository) {
+            ResponsavelRepositoryPort responsavelRepository) {
         return new CriarAlunoService(alunoRepository, responsavelRepository);
     }
 
@@ -80,7 +95,7 @@ public class UseCaseConfig {
     @Transactional
     public AtualizarAlunoUseCase atualizarAlunoUseCase(
             AlunoRepositoryPort alunoRepository,
-            ResponsavelFinanceiroRepositoryPort responsavelRepository) {
+            ResponsavelRepositoryPort responsavelRepository) {
         return new AtualizarAlunoService(alunoRepository, responsavelRepository);
     }
 

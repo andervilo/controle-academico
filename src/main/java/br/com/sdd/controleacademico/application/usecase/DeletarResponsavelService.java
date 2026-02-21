@@ -1,16 +1,16 @@
 package br.com.sdd.controleacademico.application.usecase;
 
-import br.com.sdd.controleacademico.application.port.in.DeletarResponsavelFinanceiroUseCase;
-import br.com.sdd.controleacademico.application.port.out.ResponsavelFinanceiroRepositoryPort;
+import br.com.sdd.controleacademico.application.port.in.DeletarResponsavelUseCase;
+import br.com.sdd.controleacademico.application.port.out.ResponsavelRepositoryPort;
 import br.com.sdd.controleacademico.domain.exception.RegraDeNegocioException;
 
 import java.util.UUID;
 
-public class DeletarResponsavelFinanceiroService implements DeletarResponsavelFinanceiroUseCase {
+public class DeletarResponsavelService implements DeletarResponsavelUseCase {
 
-    private final ResponsavelFinanceiroRepositoryPort repository;
+    private final ResponsavelRepositoryPort repository;
 
-    public DeletarResponsavelFinanceiroService(ResponsavelFinanceiroRepositoryPort repository) {
+    public DeletarResponsavelService(ResponsavelRepositoryPort repository) {
         this.repository = repository;
     }
 

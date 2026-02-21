@@ -21,6 +21,11 @@ public interface AlunoRepositoryPort {
 
     void deletar(UUID id);
 
+    void adicionarResponsavel(java.util.UUID alunoId,
+            br.com.sdd.controleacademico.domain.model.AlunoResponsavel vinculo);
+
+    List<br.com.sdd.controleacademico.domain.model.AlunoResponsavelDetalhe> listarResponsaveisPorAluno(UUID alunoId);
+
     List<Aluno> listarTodos();
 
     List<Aluno> listarPorTurma(UUID turmaId);

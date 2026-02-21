@@ -2,7 +2,7 @@ package br.com.sdd.controleacademico.application.usecase;
 
 import br.com.sdd.controleacademico.application.port.in.CriarAlunoUseCase;
 import br.com.sdd.controleacademico.application.port.out.AlunoRepositoryPort;
-import br.com.sdd.controleacademico.application.port.out.ResponsavelFinanceiroRepositoryPort;
+import br.com.sdd.controleacademico.application.port.out.ResponsavelRepositoryPort;
 import br.com.sdd.controleacademico.domain.exception.RegraDeNegocioException;
 import br.com.sdd.controleacademico.domain.model.Aluno;
 
@@ -13,18 +13,19 @@ import java.util.UUID;
 public class CriarAlunoService implements CriarAlunoUseCase {
 
     private final AlunoRepositoryPort alunoRepository;
-    private final ResponsavelFinanceiroRepositoryPort responsavelRepository;
+    private final ResponsavelRepositoryPort responsavelRepository;
 
     public CriarAlunoService(AlunoRepositoryPort alunoRepository,
-            ResponsavelFinanceiroRepositoryPort responsavelRepository) {
+            ResponsavelRepositoryPort responsavelRepository) {
         this.alunoRepository = alunoRepository;
         this.responsavelRepository = responsavelRepository;
     }
 
     @Override
-    public Aluno criar(String nome, String cpf, String email, LocalDate dataNascimento, UUID responsavelFinanceiroId) {
+    public Aluno criar(String nome, String cpf, String email, String telefone, LocalDate dataNascimento,
+            UUID responsavelId) {
         // Valida se Responsável existe
-        var responsavel = responsavelRepository.buscarPorId(responsavelFinanceiroId)
+        var responsavel = responsavelRepository.buscarPorId(responsavelId)
                 .orElseThrow(() -> new RegraDeNegocioException("Responsável Financeiro não encontrado"));
 
         // Valida duplicidade de CPF (se informado)
@@ -35,7 +36,7 @@ public class CriarAlunoService implements CriarAlunoUseCase {
         // Gera Matrícula Única
         String matricula = gerarMatriculaUnica();
 
-        var aluno = Aluno.criar(nome, matricula, cpf, email, dataNascimento, responsavel.getId());
+        var aluno = Aluno.criar(nome, matricula, cpf, email, telefone, dataNascimento, responsavel.getId());
         return alunoRepository.salvar(aluno);
     }
 

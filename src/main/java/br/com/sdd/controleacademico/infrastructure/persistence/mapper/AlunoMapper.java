@@ -7,8 +7,10 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface AlunoMapper {
-    @Mapping(target = "responsavelFinanceiro", ignore = true)
+    @Mapping(target = "responsavel", ignore = true)
+    @Mapping(target = "responsaveis", ignore = true)
     AlunoEntity toEntity(Aluno domain);
 
+    @Mapping(target = "responsaveis", ignore = true)
     Aluno toDomain(AlunoEntity entity);
 }

@@ -10,12 +10,14 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { DatePickerModule } from 'primeng/datepicker';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 import { environment } from '@/environments/environment';
 
 @Component({
   selector: 'app-aluno-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonModule, InputTextModule, CardModule, ToastModule, FloatLabelModule, DatePickerModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonModule, InputTextModule, CardModule, ToastModule, FloatLabelModule, DatePickerModule, SelectModule, TableModule],
   providers: [MessageService],
   template: `
     <p-toast />
@@ -45,6 +47,10 @@ import { environment } from '@/environments/environment';
           <div class="col-span-12 md:col-span-6 lg:col-span-4">
             <p-floatlabel variant="on"><input pInputText id="telefone" formControlName="telefone" class="w-full" /><label for="telefone">Telefone *</label></p-floatlabel>
           </div>
+          <div class="col-span-12 md:col-span-6 lg:col-span-4">
+            <p-select id="responsavelId" formControlName="responsavelId" [options]="responsaveis()" optionLabel="nome" optionValue="id" placeholder="Responsável Principal *" class="w-full" styleClass="w-full" />
+            @if (form.get('responsavelId')?.hasError('required') && form.get('responsavelId')?.touched) { <small class="text-red-500 mt-1 block">Responsável Principal é obrigatório</small> }
+          </div>
         </div>
         <div class="flex gap-3 mt-6">
           <p-button [label]="isEdit() ? 'Salvar' : 'Cadastrar'" icon="pi pi-check" type="submit" [loading]="loading()" />
@@ -52,6 +58,42 @@ import { environment } from '@/environments/environment';
         </div>
       </form>
     </div>
+
+    @if (isEdit()) {
+      <div class="card mt-6">
+        <h3 class="m-0 mb-4 text-color font-bold text-xl">Outros Responsáveis / Vínculos</h3>
+        <form [formGroup]="linkForm" (ngSubmit)="onLinkSubmit()" class="flex flex-col md:flex-row gap-4 mb-6">
+          <div class="flex-1">
+            <p-select formControlName="responsavelId" [options]="responsaveis()" optionLabel="nome" optionValue="id" placeholder="Selecione o Responsável" class="w-full" styleClass="w-full" />
+          </div>
+          <div class="flex-1">
+            <p-select formControlName="parentesco" [options]="parentescoOptions" placeholder="Parentesco" class="w-full" styleClass="w-full" />
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="permiteBuscar" formControlName="permiteBuscarEscola" />
+            <label for="permiteBuscar">Pode buscar?</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="contatoEmergencia" formControlName="contatoEmergencia" />
+            <label for="contatoEmergencia">Emergência?</label>
+          </div>
+          <p-button type="submit" label="Vincular" icon="pi pi-link" [disabled]="linkForm.invalid" />
+        </form>
+
+        <p-table [value]="responsaveisVinculados()" dataKey="responsavel.id">
+          <ng-template #header><tr><th>Nome</th><th>Parentesco</th><th>Pode Buscar</th><th>Emergência</th></tr></ng-template>
+          <ng-template #body let-item>
+            <tr>
+              <td>{{ item.responsavel.nome }}</td>
+              <td>{{ item.parentesco }}</td>
+              <td>{{ item.permiteBuscarEscola ? 'Sim' : 'Não' }}</td>
+              <td>{{ item.contatoEmergencia ? 'Sim' : 'Não' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage><tr><td colspan="4" class="text-center p-4">Nenhum responsável adicional vinculado.</td></tr></ng-template>
+        </p-table>
+      </div>
+    }
   `,
 })
 export class AlunoFormComponent implements OnInit {
@@ -68,31 +110,79 @@ export class AlunoFormComponent implements OnInit {
     dataNascimento: [null as Date | null, Validators.required],
     email: ['', [Validators.required, Validators.email]],
     telefone: ['', Validators.required],
+    responsavelId: [null as string | null, Validators.required]
   });
   isEdit = signal(false);
   loading = signal(false);
   recordId = signal<string | null>(null);
+  responsaveis = signal<any[]>([]);
+  responsaveisVinculados = signal<any[]>([]);
+
+  parentescoOptions = ['PAI', 'MAE', 'AVO_AVO', 'TIO_TIA', 'IRMAO_IRMA', 'OUTRO'];
+
+  linkForm = this.fb.group({
+    responsavelId: ['', Validators.required],
+    parentesco: ['PAI', Validators.required],
+    permiteBuscarEscola: [false],
+    contatoEmergencia: [false]
+  });
 
   ngOnInit() {
+    this.carregarResponsaveis();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit.set(true);
       this.recordId.set(id);
       this.http.get<any>(`${this.API}/${id}`).subscribe({
-        next: (data) => this.form.patchValue({ ...data, dataNascimento: data.dataNascimento ? new Date(data.dataNascimento) : null }),
+        next: (data) => {
+          let dn: Date | null = null;
+          if (data.dataNascimento) { const [y, m, d] = data.dataNascimento.split('-').map(Number); dn = new Date(y, m - 1, d); }
+          this.form.patchValue({ ...data, dataNascimento: dn });
+        },
       });
+      this.carregarResponsaveisVinculados(id);
     }
+  }
+
+  carregarResponsaveis() {
+    this.http.get<any[]>(`${environment.apiUrl}/responsaveis`).subscribe({
+      next: (data) => this.responsaveis.set(data)
+    });
+  }
+
+  carregarResponsaveisVinculados(alunoId: string) {
+    this.http.get<any[]>(`${this.API}/${alunoId}/responsaveis`).subscribe({
+      next: (data) => this.responsaveisVinculados.set(data)
+    });
   }
 
   onSubmit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha os campos obrigatórios' }); return; }
     this.loading.set(true);
     const data: any = { ...this.form.value };
-    if (data.dataNascimento instanceof Date) data.dataNascimento = data.dataNascimento.toISOString().split('T')[0];
+    if (data.dataNascimento instanceof Date) {
+      const d = data.dataNascimento;
+      data.dataNascimento = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
     const req$ = this.isEdit() ? this.http.put(`${this.API}/${this.recordId()}`, data) : this.http.post(this.API, data);
     req$.subscribe({
       next: () => { this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: this.isEdit() ? 'Aluno atualizado' : 'Aluno cadastrado' }); setTimeout(() => this.router.navigate(['/alunos']), 1000); },
       error: (err) => { this.loading.set(false); this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.detail || err.error?.message || 'Erro ao salvar' }); },
+    });
+  }
+
+  onLinkSubmit() {
+    if (this.linkForm.invalid || !this.recordId()) return;
+    const body = this.linkForm.value;
+    this.http.post(`${this.API}/${this.recordId()}/responsaveis`, body).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Vínculo adicionado' });
+        this.linkForm.reset({ parentesco: 'PAI', permiteBuscarEscola: false, contatoEmergencia: false });
+        this.carregarResponsaveisVinculados(this.recordId()!);
+      },
+      error: (err) => {
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.detail || err.error?.message || 'Erro ao vincular' });
+      }
     });
   }
 }
