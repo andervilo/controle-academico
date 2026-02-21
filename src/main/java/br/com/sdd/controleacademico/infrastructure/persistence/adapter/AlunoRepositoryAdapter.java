@@ -67,4 +67,18 @@ public class AlunoRepositoryAdapter implements AlunoRepositoryPort {
                 .map(mapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public List<Aluno> listarPorTurma(UUID turmaId) {
+        return jpaRepository.findAlunosByTurmaId(turmaId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Aluno> listarDisponiveisParaTurma(UUID turmaId) {
+        return jpaRepository.findAlunosDisponiveisParaTurma(turmaId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

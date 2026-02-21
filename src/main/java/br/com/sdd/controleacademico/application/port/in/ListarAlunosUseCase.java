@@ -5,4 +5,8 @@ import java.util.List;
 
 public interface ListarAlunosUseCase {
     List<Aluno> listarTodos();
+
+    List<Aluno> listarPorTurma(java.util.UUID turmaId);
+
+    List<Aluno> listarDisponiveisParaTurma(java.util.UUID turmaId);
 }

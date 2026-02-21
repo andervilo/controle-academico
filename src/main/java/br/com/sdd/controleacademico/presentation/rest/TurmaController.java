@@ -8,6 +8,9 @@ import br.com.sdd.controleacademico.presentation.rest.dto.AtribuirProfessorDisci
 import br.com.sdd.controleacademico.presentation.rest.dto.TurmaDisciplinaProfessorResponse;
 import br.com.sdd.controleacademico.presentation.rest.dto.TurmaRequest;
 import br.com.sdd.controleacademico.presentation.rest.dto.TurmaResponse;
+import br.com.sdd.controleacademico.presentation.rest.dto.MatricularAlunosRequest;
+import br.com.sdd.controleacademico.presentation.rest.dto.AlunoResponse;
+import br.com.sdd.controleacademico.domain.model.Aluno;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,6 +35,7 @@ public class TurmaController {
     private final GerenciarTurmaDisciplinaProfessorUseCase gerenciarTDPUseCase;
     private final BuscarDisciplinaUseCase buscarDisciplinaUseCase;
     private final BuscarProfessorUseCase buscarProfessorUseCase;
+    private final ListarAlunosUseCase listarAlunosUseCase;
 
     public TurmaController(CriarTurmaUseCase criarUseCase,
             BuscarTurmaUseCase buscarUseCase,
@@ -41,7 +45,8 @@ public class TurmaController {
             GerenciarTurmaAlunoUseCase gerenciarAlunoUseCase,
             GerenciarTurmaDisciplinaProfessorUseCase gerenciarTDPUseCase,
             BuscarDisciplinaUseCase buscarDisciplinaUseCase,
-            BuscarProfessorUseCase buscarProfessorUseCase) {
+            BuscarProfessorUseCase buscarProfessorUseCase,
+            ListarAlunosUseCase listarAlunosUseCase) {
         this.criarUseCase = criarUseCase;
         this.buscarUseCase = buscarUseCase;
         this.atualizarUseCase = atualizarUseCase;
@@ -51,6 +56,7 @@ public class TurmaController {
         this.gerenciarTDPUseCase = gerenciarTDPUseCase;
         this.buscarDisciplinaUseCase = buscarDisciplinaUseCase;
         this.buscarProfessorUseCase = buscarProfessorUseCase;
+        this.listarAlunosUseCase = listarAlunosUseCase;
     }
 
     @PostMapping
@@ -96,11 +102,33 @@ public class TurmaController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{turmaId}/alunos/lote")
+    @Operation(summary = "Matricular múltiplos alunos à turma")
+    public ResponseEntity<Void> matricularAlunosLote(@PathVariable UUID turmaId,
+            @Valid @RequestBody MatricularAlunosRequest request) {
+        gerenciarAlunoUseCase.adicionarAlunos(turmaId, request.alunoIds());
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{turmaId}/alunos/{alunoId}")
     @Operation(summary = "Remover aluno da turma")
     public ResponseEntity<Void> removerAluno(@PathVariable UUID turmaId, @PathVariable UUID alunoId) {
         gerenciarAlunoUseCase.removerAluno(turmaId, alunoId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{turmaId}/alunos")
+    @Operation(summary = "Listar alunos matriculados na turma")
+    public ResponseEntity<List<AlunoResponse>> listarAlunosDaTurma(@PathVariable UUID turmaId) {
+        return ResponseEntity.ok(listarAlunosUseCase.listarPorTurma(turmaId).stream()
+                .map(this::toAlunoResponse).toList());
+    }
+
+    @GetMapping("/{turmaId}/alunos-disponiveis")
+    @Operation(summary = "Listar alunos disponíveis para matrícula na turma")
+    public ResponseEntity<List<AlunoResponse>> listarAlunosDisponiveis(@PathVariable UUID turmaId) {
+        return ResponseEntity.ok(listarAlunosUseCase.listarDisponiveisParaTurma(turmaId).stream()
+                .map(this::toAlunoResponse).toList());
     }
 
     // ── Grade Horária (Disciplinas ↔ Professores) ───────────
@@ -148,5 +176,10 @@ public class TurmaController {
         return new TurmaDisciplinaProfessorResponse(tdp.getId(), tdp.getTurmaId(), turmaNome, tdp.getDisciplinaId(),
                 disciplinaNome, tdp.getProfessorId(), professorNome, tdp.getAnoLetivoId(), tdp.getDiaSemana().name(),
                 tdp.getHoraInicio(), tdp.getHoraFim());
+    }
+
+    private AlunoResponse toAlunoResponse(Aluno a) {
+        return new AlunoResponse(a.getId(), a.getNome(), a.getMatricula(), a.getCpf(), a.getEmail(),
+                a.getDataNascimento(), a.getResponsavelFinanceiroId());
     }
 }

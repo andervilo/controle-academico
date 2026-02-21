@@ -22,4 +22,8 @@ public interface AlunoRepositoryPort {
     void deletar(UUID id);
 
     List<Aluno> listarTodos();
+
+    List<Aluno> listarPorTurma(UUID turmaId);
+
+    List<Aluno> listarDisponiveisParaTurma(UUID turmaId);
 }

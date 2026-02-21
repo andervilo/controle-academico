@@ -18,4 +18,14 @@ public class ListarAlunosService implements ListarAlunosUseCase {
     public List<Aluno> listarTodos() {
         return repository.listarTodos();
     }
+
+    @Override
+    public List<Aluno> listarPorTurma(java.util.UUID turmaId) {
+        return repository.listarPorTurma(turmaId);
+    }
+
+    @Override
+    public List<Aluno> listarDisponiveisParaTurma(java.util.UUID turmaId) {
+        return repository.listarDisponiveisParaTurma(turmaId);
+    }
 }
