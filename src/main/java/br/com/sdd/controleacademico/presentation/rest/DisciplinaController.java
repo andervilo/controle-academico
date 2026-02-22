@@ -55,8 +55,26 @@ public class DisciplinaController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todas as disciplinas")
-    public ResponseEntity<List<DisciplinaResponse>> listarTodas() {
+    @Operation(summary = "Listar todas as disciplinas (paginado)")
+    public ResponseEntity<br.com.sdd.controleacademico.presentation.rest.dto.PaginatedResponse<DisciplinaResponse>> listarTodas(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        var result = listarUseCase.listarPaginado(page, size);
+        List<DisciplinaResponse> content = result.content().stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(new br.com.sdd.controleacademico.presentation.rest.dto.PaginatedResponse<>(
+                content,
+                result.totalElements(),
+                result.totalPages(),
+                result.size(),
+                result.number()));
+    }
+
+    @GetMapping("/todos")
+    @Operation(summary = "Listar todas as disciplinas (sem paginação)")
+    public ResponseEntity<List<DisciplinaResponse>> listarTodosSemPaginacao() {
         return ResponseEntity.ok(listarUseCase.listarTodas().stream().map(this::toResponse).toList());
     }
 

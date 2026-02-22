@@ -19,6 +19,8 @@ public interface DisciplinaRepositoryPort {
 
     List<Disciplina> listarTodos();
 
+    br.com.sdd.controleacademico.domain.model.PaginationResult<Disciplina> listarPaginado(int page, int size);
+
     void adicionarProfessor(UUID disciplinaId, UUID professorId);
 
     void removerProfessor(UUID disciplinaId, UUID professorId);

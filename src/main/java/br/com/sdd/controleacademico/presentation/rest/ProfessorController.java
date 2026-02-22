@@ -89,6 +89,12 @@ public class ProfessorController {
                 result.number()));
     }
 
+    @GetMapping("/todos")
+    @Operation(summary = "Listar todos os professores (sem paginação)")
+    public ResponseEntity<List<ProfessorResponse>> listarTodosSemPaginacao() {
+        return ResponseEntity.ok(listarUseCase.listarTodos().stream().map(this::toResponse).toList());
+    }
+
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar professor")
     public ResponseEntity<ProfessorResponse> atualizar(@PathVariable UUID id,

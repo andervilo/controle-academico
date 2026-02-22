@@ -16,4 +16,9 @@ public class ListarAnosLetivosService implements ListarAnosLetivosUseCase {
     public List<AnoLetivo> listarTodos() {
         return repository.listarTodos();
     }
+
+    @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<AnoLetivo> listarPaginado(int page, int size) {
+        return repository.listarPaginado(page, size);
+    }
 }

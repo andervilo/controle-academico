@@ -141,12 +141,29 @@ public class AlunoController {
         }
 
         @GetMapping
-        @Operation(summary = "Listar Alunos", description = "Lista todos os Alunos")
-        public ResponseEntity<List<AlunoResponse>> listar() {
-                var lista = listarAlunosUseCase.listarTodos().stream()
+        @Operation(summary = "Listar Alunos (paginado)", description = "Lista todos os Alunos de forma paginada")
+        public ResponseEntity<br.com.sdd.controleacademico.presentation.rest.dto.PaginatedResponse<AlunoResponse>> listar(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
+
+                var result = listarAlunosUseCase.listarPaginado(page, size);
+
+                List<AlunoResponse> content = result.content().stream()
                                 .map(this::toResponse)
                                 .toList();
-                return ResponseEntity.ok(lista);
+
+                return ResponseEntity.ok(new br.com.sdd.controleacademico.presentation.rest.dto.PaginatedResponse<>(
+                                content,
+                                result.totalElements(),
+                                result.totalPages(),
+                                result.size(),
+                                result.number()));
+        }
+
+        @GetMapping("/todos")
+        @Operation(summary = "Listar todos os alunos (sem paginação)")
+        public ResponseEntity<List<AlunoResponse>> listarTodosSemPaginacao() {
+                return ResponseEntity.ok(listarAlunosUseCase.listarTodos().stream().map(this::toResponse).toList());
         }
 
         private AlunoResponse toResponse(Aluno aluno) {

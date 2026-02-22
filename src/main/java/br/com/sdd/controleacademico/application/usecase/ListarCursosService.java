@@ -16,4 +16,9 @@ public class ListarCursosService implements ListarCursosUseCase {
     public List<Curso> listarTodos() {
         return repository.listarTodos();
     }
+
+    @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<Curso> listarPaginado(int page, int size) {
+        return repository.listarPaginado(page, size);
+    }
 }

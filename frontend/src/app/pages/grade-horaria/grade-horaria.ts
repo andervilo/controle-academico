@@ -139,9 +139,9 @@ export class GradeHorariaComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.http.get<any[]>(`${environment.apiUrl}/turmas`).subscribe({ next: (r) => this.turmas.set(r) });
-    this.http.get<any[]>(`${environment.apiUrl}/disciplinas`).subscribe({ next: (r) => this.disciplinas.set(r) });
-    this.http.get<any[]>(`${environment.apiUrl}/professores`).subscribe({ next: (r) => this.professores.set(r) });
+    this.http.get<any[]>(`${environment.apiUrl}/turmas/todos`).subscribe({ next: (r) => this.turmas.set(r) });
+    this.http.get<any[]>(`${environment.apiUrl}/disciplinas/todos`).subscribe({ next: (r) => this.disciplinas.set(r) });
+    this.http.get<any[]>(`${environment.apiUrl}/professores/todos`).subscribe({ next: (r) => this.professores.set(r) });
   }
 
   onTurmaChange() { if (this.selectedTurmaId) this.loadAtribuicoes(); }

@@ -20,6 +20,11 @@ public class ListarAlunosService implements ListarAlunosUseCase {
     }
 
     @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<Aluno> listarPaginado(int page, int size) {
+        return repository.listarPaginado(page, size);
+    }
+
+    @Override
     public List<Aluno> listarPorTurma(java.util.UUID turmaId) {
         return repository.listarPorTurma(turmaId);
     }

@@ -47,6 +47,20 @@ public class TurmaRepositoryAdapter implements TurmaRepositoryPort {
     }
 
     @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<Turma> listarPaginado(int page, int size) {
+        org.springframework.data.domain.Page<br.com.sdd.controleacademico.infrastructure.persistence.entity.TurmaEntity> result = jpaRepository
+                .findAll(org.springframework.data.domain.PageRequest.of(page, size,
+                        org.springframework.data.domain.Sort.by("nome")));
+
+        return new br.com.sdd.controleacademico.domain.model.PaginationResult<>(
+                result.getContent().stream().map(mapper::toDomain).toList(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.getSize(),
+                result.getNumber());
+    }
+
+    @Override
     @Transactional
     public void adicionarAluno(UUID turmaId, UUID alunoId) {
         jpaRepository.adicionarAluno(turmaId, alunoId);

@@ -18,4 +18,9 @@ public class ListarResponsaveisService implements ListarResponsaveisUseCase {
     public List<Responsavel> listarTodos() {
         return repository.listarTodos();
     }
+
+    @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<Responsavel> listarPaginado(int page, int size) {
+        return repository.listarPaginado(page, size);
+    }
 }

@@ -74,8 +74,26 @@ public class TurmaController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todas as turmas")
-    public ResponseEntity<List<TurmaResponse>> listarTodas() {
+    @Operation(summary = "Listar todas as turmas (paginado)")
+    public ResponseEntity<br.com.sdd.controleacademico.presentation.rest.dto.PaginatedResponse<TurmaResponse>> listarTodas(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        var result = listarUseCase.listarPaginado(page, size);
+        List<TurmaResponse> content = result.content().stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(new br.com.sdd.controleacademico.presentation.rest.dto.PaginatedResponse<>(
+                content,
+                result.totalElements(),
+                result.totalPages(),
+                result.size(),
+                result.number()));
+    }
+
+    @GetMapping("/todos")
+    @Operation(summary = "Listar todas as turmas (sem paginação)")
+    public ResponseEntity<List<TurmaResponse>> listarTodosSemPaginacao() {
         return ResponseEntity.ok(listarUseCase.listarTodas().stream().map(this::toResponse).toList());
     }
 

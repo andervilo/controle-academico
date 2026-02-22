@@ -28,6 +28,8 @@ public interface AlunoRepositoryPort {
 
     List<Aluno> listarTodos();
 
+    br.com.sdd.controleacademico.domain.model.PaginationResult<Aluno> listarPaginado(int page, int size);
+
     List<Aluno> listarPorTurma(UUID turmaId);
 
     List<Aluno> listarDisponiveisParaTurma(UUID turmaId);

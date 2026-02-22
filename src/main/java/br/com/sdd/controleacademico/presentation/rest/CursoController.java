@@ -60,8 +60,26 @@ public class CursoController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os cursos")
-    public ResponseEntity<List<CursoResponse>> listarTodos() {
+    @Operation(summary = "Listar todos os cursos (paginado)")
+    public ResponseEntity<br.com.sdd.controleacademico.presentation.rest.dto.PaginatedResponse<CursoResponse>> listarTodos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        var result = listarUseCase.listarPaginado(page, size);
+        List<CursoResponse> content = result.content().stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(new br.com.sdd.controleacademico.presentation.rest.dto.PaginatedResponse<>(
+                content,
+                result.totalElements(),
+                result.totalPages(),
+                result.size(),
+                result.number()));
+    }
+
+    @GetMapping("/todos")
+    @Operation(summary = "Listar todos os cursos (sem paginação)")
+    public ResponseEntity<List<CursoResponse>> listarTodosSemPaginacao() {
         return ResponseEntity.ok(listarUseCase.listarTodos().stream().map(this::toResponse).toList());
     }
 

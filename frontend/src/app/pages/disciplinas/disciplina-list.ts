@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { TableModule } from 'primeng/table';
+import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -26,10 +26,23 @@ import { environment } from '@/environments/environment';
       <ng-template #end><p-button label="Nova Disciplina" icon="pi pi-plus" severity="primary" routerLink="/disciplinas/novo" /></ng-template>
     </p-toolbar>
     <div class="card">
-      <p-table [value]="items()" [loading]="loading()" [tableStyle]="{ 'min-width': '40rem' }" dataKey="id">
+      <p-table 
+        [value]="items()" 
+        [loading]="loading()" 
+        [tableStyle]="{ 'min-width': '40rem' }" 
+        dataKey="id"
+        [lazy]="true"
+        (onLazyLoad)="onLazyLoad($event)"
+        [rows]="rows()"
+        [totalRecords]="totalRecords()"
+        [paginator]="true"
+        [alwaysShowPaginator]="false"
+        [first]="first()"
+        [rowsPerPageOptions]="[10, 15, 20, 50, 100]"
+      >
         <ng-template #caption>
           <div class="flex items-center justify-between">
-            <span class="text-xl text-muted-color">{{ items().length }} registro(s)</span>
+            <span class="text-xl text-muted-color">{{ totalRecords() }} registro(s)</span>
             <p-iconfield iconPosition="left"><p-inputicon><i class="pi pi-search"></i></p-inputicon>
               <input pInputText type="text" [(ngModel)]="searchValue" (input)="onSearch()" placeholder="Buscar..." />
             </p-iconfield>
@@ -57,10 +70,33 @@ export class DisciplinaListComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly API = `${environment.apiUrl}/disciplinas`;
-  items = signal<any[]>([]); allItems = signal<any[]>([]); loading = signal(false); searchValue = '';
+  items = signal<any[]>([]);
+  loading = signal(false);
+  totalRecords = signal(0);
+  rows = signal(10);
+  first = signal(0);
+  searchValue = '';
 
-  ngOnInit() { this.load(); }
-  load() { this.loading.set(true); this.http.get<any[]>(this.API).subscribe({ next: (r) => { this.allItems.set(r); this.items.set(r); this.loading.set(false); }, error: () => { this.loading.set(false); } }); }
-  onSearch() { const s = this.searchValue.toLowerCase(); this.items.set(this.allItems().filter(i => i.nome.toLowerCase().includes(s))); }
+  ngOnInit() { }
+  load(page: number = 0, size: number = 10) {
+    this.loading.set(true);
+    const params = { page: page.toString(), size: size.toString() };
+    this.http.get<any>(this.API, { params }).subscribe({
+      next: (r) => {
+        this.items.set(r.content);
+        this.totalRecords.set(r.totalElements);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+  onLazyLoad(event: TableLazyLoadEvent) {
+    const page = (event.first || 0) / (event.rows || 10);
+    const size = event.rows || 10;
+    this.rows.set(size);
+    this.first.set(event.first || 0);
+    this.load(page, size);
+  }
+  onSearch() { console.log('Search to be implemented server-side'); }
   confirmDelete(item: any) { this.confirmationService.confirm({ message: `Deseja excluir "${item.nome}"?`, header: 'Confirmar', icon: 'pi pi-exclamation-triangle', acceptLabel: 'Sim', rejectLabel: 'Cancelar', acceptButtonStyleClass: 'p-button-danger', accept: () => this.http.delete(`${this.API}/${item.id}`).subscribe({ next: () => { this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Disciplina excluída' }); this.load(); }, error: (e) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: e.error?.detail || e.error?.message || 'Erro ao excluir' }) }) }); }
 }

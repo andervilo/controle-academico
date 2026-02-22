@@ -18,4 +18,6 @@ public interface AnoLetivoRepositoryPort {
     void deletar(UUID id);
 
     List<AnoLetivo> listarTodos();
+
+    br.com.sdd.controleacademico.domain.model.PaginationResult<AnoLetivo> listarPaginado(int page, int size);
 }

@@ -107,6 +107,20 @@ public class AlunoRepositoryAdapter implements AlunoRepositoryPort {
     }
 
     @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<Aluno> listarPaginado(int page, int size) {
+        org.springframework.data.domain.Page<AlunoEntity> result = jpaRepository
+                .findAll(org.springframework.data.domain.PageRequest.of(page, size,
+                        org.springframework.data.domain.Sort.by("nome")));
+
+        return new br.com.sdd.controleacademico.domain.model.PaginationResult<>(
+                result.getContent().stream().map(mapper::toDomain).toList(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.getSize(),
+                result.getNumber());
+    }
+
+    @Override
     public List<Aluno> listarPorTurma(UUID turmaId) {
         return jpaRepository.findAlunosByTurmaId(turmaId).stream()
                 .map(mapper::toDomain)

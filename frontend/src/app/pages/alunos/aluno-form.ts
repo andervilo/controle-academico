@@ -145,7 +145,7 @@ export class AlunoFormComponent implements OnInit {
   }
 
   carregarResponsaveis() {
-    this.http.get<any[]>(`${environment.apiUrl}/responsaveis`).subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/responsaveis/todos`).subscribe({
       next: (data) => this.responsaveis.set(data)
     });
   }

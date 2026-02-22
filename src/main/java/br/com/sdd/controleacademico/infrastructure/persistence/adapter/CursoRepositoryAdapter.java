@@ -52,6 +52,20 @@ public class CursoRepositoryAdapter implements CursoRepositoryPort {
     }
 
     @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<Curso> listarPaginado(int page, int size) {
+        org.springframework.data.domain.Page<br.com.sdd.controleacademico.infrastructure.persistence.entity.CursoEntity> result = jpaRepository
+                .findAll(org.springframework.data.domain.PageRequest.of(page, size,
+                        org.springframework.data.domain.Sort.by("nome")));
+
+        return new br.com.sdd.controleacademico.domain.model.PaginationResult<>(
+                result.getContent().stream().map(mapper::toDomain).toList(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.getSize(),
+                result.getNumber());
+    }
+
+    @Override
     @Transactional
     public void adicionarDisciplina(UUID cursoId, UUID disciplinaId) {
         jpaRepository.adicionarDisciplina(cursoId, disciplinaId);

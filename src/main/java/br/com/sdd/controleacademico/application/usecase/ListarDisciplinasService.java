@@ -16,4 +16,9 @@ public class ListarDisciplinasService implements ListarDisciplinasUseCase {
     public List<Disciplina> listarTodas() {
         return repository.listarTodos();
     }
+
+    @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<Disciplina> listarPaginado(int page, int size) {
+        return repository.listarPaginado(page, size);
+    }
 }

@@ -20,4 +20,6 @@ public interface ResponsavelRepositoryPort {
     void deletar(UUID id);
 
     List<Responsavel> listarTodos();
+
+    br.com.sdd.controleacademico.domain.model.PaginationResult<Responsavel> listarPaginado(int page, int size);
 }

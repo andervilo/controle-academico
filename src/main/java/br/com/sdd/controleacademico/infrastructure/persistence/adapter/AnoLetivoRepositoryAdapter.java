@@ -49,4 +49,18 @@ public class AnoLetivoRepositoryAdapter implements AnoLetivoRepositoryPort {
     public List<AnoLetivo> listarTodos() {
         return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
     }
+
+    @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<AnoLetivo> listarPaginado(int page, int size) {
+        org.springframework.data.domain.Page<br.com.sdd.controleacademico.infrastructure.persistence.entity.AnoLetivoEntity> result = jpaRepository
+                .findAll(org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort
+                        .by(org.springframework.data.domain.Sort.Direction.DESC, "ano")));
+
+        return new br.com.sdd.controleacademico.domain.model.PaginationResult<>(
+                result.getContent().stream().map(mapper::toDomain).toList(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.getSize(),
+                result.getNumber());
+    }
 }

@@ -73,7 +73,7 @@ export class CursoFormComponent implements OnInit {
   disciplinas = signal<any[]>([]);
 
   ngOnInit() {
-    this.http.get<any[]>(`${environment.apiUrl}/disciplinas`).subscribe({ next: (res) => this.disciplinas.set(res) });
+    this.http.get<any[]>(`${environment.apiUrl}/disciplinas/todos`).subscribe({ next: (res) => this.disciplinas.set(res) });
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit.set(true);

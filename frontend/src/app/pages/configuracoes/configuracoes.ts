@@ -18,11 +18,11 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { environment } from '@/environments/environment';
 
 @Component({
-    selector: 'app-configuracoes',
-    standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormsModule, ButtonModule, InputTextModule, CardModule, ToastModule, FloatLabelModule, TabsModule, TableModule, DialogModule, SelectModule, TagModule, InputNumberModule, FileUploadModule],
-    providers: [MessageService],
-    template: `
+  selector: 'app-configuracoes',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, ButtonModule, InputTextModule, CardModule, ToastModule, FloatLabelModule, TabsModule, TableModule, DialogModule, SelectModule, TagModule, InputNumberModule, FileUploadModule],
+  providers: [MessageService],
+  template: `
     <p-toast />
     <div class="mb-6">
       <h2 class="m-0 text-color font-bold text-2xl">Configurações do Sistema</h2>
@@ -207,124 +207,124 @@ import { environment } from '@/environments/environment';
   `
 })
 export class ConfiguracoesComponent implements OnInit {
-    private readonly fb = inject(FormBuilder);
-    private readonly http = inject(HttpClient);
-    private readonly messageService = inject(MessageService);
-    private readonly API = `${environment.apiUrl}/config`;
+  private readonly fb = inject(FormBuilder);
+  private readonly http = inject(HttpClient);
+  private readonly messageService = inject(MessageService);
+  private readonly API = `${environment.apiUrl}/config`;
 
-    escolaForm = this.fb.group({
-        id: [null],
-        nomeInstituicao: ['', Validators.required],
-        cnpj: [''], inep: [''], cep: [''], logradouro: [''], numero: [''], bairro: [''], cidade: [''], uf: [''], telefone: [''], emailContato: [''], logotipoBase64: ['']
+  escolaForm = this.fb.group({
+    id: [null],
+    nomeInstituicao: ['', Validators.required],
+    cnpj: [''], inep: [''], cep: [''], logradouro: [''], numero: [''], bairro: [''], cidade: [''], uf: [''], telefone: [''], emailContato: [''], logotipoBase64: ['']
+  });
+
+  equipeForm = this.fb.group({ nome: ['', Validators.required], cpf: [''], email: ['', Validators.email], cargo: ['', Validators.required], ativo: [true] });
+  precoForm = this.fb.group({ valorMatricula: [0, Validators.required], valorMensalidade: [0, Validators.required], quantidadeMeses: [12, Validators.required], diaVencimentoPadrao: [10, Validators.required] });
+
+  loading = signal(false);
+  equipe = signal<any[]>([]);
+  anosLetivos = signal<any[]>([]);
+  cursos = signal<any[]>([]);
+  precosCursos = signal<any[]>([]);
+  anoSelecionado: string | null = null;
+
+  showModalEquipe = false;
+  showModalPreco = false;
+  precoSelecionado: any = null;
+  cargos = ['DIRETOR', 'SECRETARIO', 'COORDENADOR', 'MONITOR', 'OUTRO'];
+
+  ngOnInit() {
+    this.carregarDadosEscola();
+    this.carregarEquipe();
+    this.carregarAnosCursos();
+  }
+
+  carregarDadosEscola() {
+    this.http.get<any>(`${this.API}/escola`).subscribe(res => this.escolaForm.patchValue(res));
+  }
+
+  carregarEquipe() {
+    this.http.get<any[]>(`${this.API}/equipe`).subscribe(res => this.equipe.set(res));
+  }
+
+  carregarAnosCursos() {
+    this.http.get<any[]>(`${environment.apiUrl}/anos-letivos/todos`).subscribe(res => {
+      this.anosLetivos.set(res);
+      if (res.length > 0) {
+        this.anoSelecionado = res[0].id;
+        this.carregarPrecos();
+      }
     });
+    this.http.get<any[]>(`${environment.apiUrl}/cursos/todos`).subscribe(res => this.cursos.set(res));
+  }
 
-    equipeForm = this.fb.group({ nome: ['', Validators.required], cpf: [''], email: ['', Validators.email], cargo: ['', Validators.required], ativo: [true] });
-    precoForm = this.fb.group({ valorMatricula: [0, Validators.required], valorMensalidade: [0, Validators.required], quantidadeMeses: [12, Validators.required], diaVencimentoPadrao: [10, Validators.required] });
+  carregarPrecos() {
+    if (!this.anoSelecionado) return;
+    this.http.get<any[]>(`${this.API}/financeiro?anoLetivoId=${this.anoSelecionado}`).subscribe(res => {
+      // Mesclar cursos totais com precos existentes para garantir que todos apareçam na lista
+      const merge = this.cursos().map(c => {
+        const preco = res.find(p => p.cursoId === c.id);
+        return preco ? preco : { cursoId: c.id, cursoNome: c.nome, valorMatricula: 0, valorMensalidade: 0, quantidadeMeses: 12, diaVencimentoPadrao: 10 };
+      });
+      this.precosCursos.set(merge);
+    });
+  }
 
-    loading = signal(false);
-    equipe = signal<any[]>([]);
-    anosLetivos = signal<any[]>([]);
-    cursos = signal<any[]>([]);
-    precosCursos = signal<any[]>([]);
-    anoSelecionado: string | null = null;
+  salvarEscola() {
+    if (this.escolaForm.invalid) return;
+    this.loading.set(true);
+    this.http.put(`${this.API}/escola`, this.escolaForm.value).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Dados da escola atualizados' });
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
 
-    showModalEquipe = false;
-    showModalPreco = false;
-    precoSelecionado: any = null;
-    cargos = ['DIRETOR', 'SECRETARIO', 'COORDENADOR', 'MONITOR', 'OUTRO'];
+  onLogoSelect(event: any) {
+    const file = event.files[0];
+    const reader = new FileReader();
+    reader.onload = (e: any) => this.escolaForm.get('logotipoBase64')?.setValue(e.target.result);
+    reader.readAsDataURL(file);
+  }
 
-    ngOnInit() {
-        this.carregarDadosEscola();
-        this.carregarEquipe();
-        this.carregarAnosCursos();
-    }
+  abrirModalEquipe() {
+    this.equipeForm.reset({ ativo: true, cargo: 'OUTRO' });
+    this.showModalEquipe = true;
+  }
 
-    carregarDadosEscola() {
-        this.http.get<any>(`${this.API}/escola`).subscribe(res => this.escolaForm.patchValue(res));
-    }
+  salvarEquipe() {
+    this.http.post(`${this.API}/equipe`, this.equipeForm.value).subscribe(() => {
+      this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Membro cadastrado' });
+      this.showModalEquipe = false;
+      this.carregarEquipe();
+    });
+  }
 
-    carregarEquipe() {
-        this.http.get<any[]>(`${this.API}/equipe`).subscribe(res => this.equipe.set(res));
-    }
+  removerEquipe(id: string) {
+    this.http.delete(`${this.API}/equipe/${id}`).subscribe(() => {
+      this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Removido da equipe' });
+      this.carregarEquipe();
+    });
+  }
 
-    carregarAnosCursos() {
-        this.http.get<any[]>(`${environment.apiUrl}/anos-letivos`).subscribe(res => {
-            this.anosLetivos.set(res);
-            if (res.length > 0) {
-                this.anoSelecionado = res[0].id;
-                this.carregarPrecos();
-            }
-        });
-        this.http.get<any[]>(`${environment.apiUrl}/cursos`).subscribe(res => this.cursos.set(res));
-    }
+  editarPreco(item: any) {
+    this.precoSelecionado = item;
+    this.precoForm.patchValue(item);
+    this.showModalPreco = true;
+  }
 
-    carregarPrecos() {
-        if (!this.anoSelecionado) return;
-        this.http.get<any[]>(`${this.API}/financeiro?anoLetivoId=${this.anoSelecionado}`).subscribe(res => {
-            // Mesclar cursos totais com precos existentes para garantir que todos apareçam na lista
-            const merge = this.cursos().map(c => {
-                const preco = res.find(p => p.cursoId === c.id);
-                return preco ? preco : { cursoId: c.id, cursoNome: c.nome, valorMatricula: 0, valorMensalidade: 0, quantidadeMeses: 12, diaVencimentoPadrao: 10 };
-            });
-            this.precosCursos.set(merge);
-        });
-    }
+  salvarPreco() {
+    const data = { ...this.precoForm.value, cursoId: this.precoSelecionado.cursoId, anoLetivoId: this.anoSelecionado };
+    this.http.post(`${this.API}/financeiro`, data).subscribe(() => {
+      this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Preço atualizado' });
+      this.showModalPreco = false;
+      this.carregarPrecos();
+    });
+  }
 
-    salvarEscola() {
-        if (this.escolaForm.invalid) return;
-        this.loading.set(true);
-        this.http.put(`${this.API}/escola`, this.escolaForm.value).subscribe({
-            next: () => {
-                this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Dados da escola atualizados' });
-                this.loading.set(false);
-            },
-            error: () => this.loading.set(false)
-        });
-    }
-
-    onLogoSelect(event: any) {
-        const file = event.files[0];
-        const reader = new FileReader();
-        reader.onload = (e: any) => this.escolaForm.get('logotipoBase64')?.setValue(e.target.result);
-        reader.readAsDataURL(file);
-    }
-
-    abrirModalEquipe() {
-        this.equipeForm.reset({ ativo: true, cargo: 'OUTRO' });
-        this.showModalEquipe = true;
-    }
-
-    salvarEquipe() {
-        this.http.post(`${this.API}/equipe`, this.equipeForm.value).subscribe(() => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Membro cadastrado' });
-            this.showModalEquipe = false;
-            this.carregarEquipe();
-        });
-    }
-
-    removerEquipe(id: string) {
-        this.http.delete(`${this.API}/equipe/${id}`).subscribe(() => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Removido da equipe' });
-            this.carregarEquipe();
-        });
-    }
-
-    editarPreco(item: any) {
-        this.precoSelecionado = item;
-        this.precoForm.patchValue(item);
-        this.showModalPreco = true;
-    }
-
-    salvarPreco() {
-        const data = { ...this.precoForm.value, cursoId: this.precoSelecionado.cursoId, anoLetivoId: this.anoSelecionado };
-        this.http.post(`${this.API}/financeiro`, data).subscribe(() => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Preço atualizado' });
-            this.showModalPreco = false;
-            this.carregarPrecos();
-        });
-    }
-
-    abrirConfigTodosCursos() {
-        this.messageService.add({ severity: 'info', summary: 'Aviso', detail: 'Funcionalidade em desenvolvimento' });
-    }
+  abrirConfigTodosCursos() {
+    this.messageService.add({ severity: 'info', summary: 'Aviso', detail: 'Funcionalidade em desenvolvimento' });
+  }
 }

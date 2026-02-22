@@ -217,9 +217,9 @@ export class TurmaFormComponent implements OnInit {
   }
 
   carregarDadosIniciais() {
-    this.http.get<any[]>(`${environment.apiUrl}/cursos`).subscribe(r => this.cursos.set(r));
-    this.http.get<any[]>(`${environment.apiUrl}/anos-letivos`).subscribe(r => this.anosLetivos.set(r));
-    this.http.get<any[]>(`${environment.apiUrl}/professores`).subscribe(r => this.professores.set(r));
+    this.http.get<any[]>(`${environment.apiUrl}/cursos/todos`).subscribe(r => this.cursos.set(r));
+    this.http.get<any[]>(`${environment.apiUrl}/anos-letivos/todos`).subscribe(r => this.anosLetivos.set(r));
+    this.http.get<any[]>(`${environment.apiUrl}/professores/todos`).subscribe(r => this.professores.set(r));
   }
 
   carregarTurma(id: string) {

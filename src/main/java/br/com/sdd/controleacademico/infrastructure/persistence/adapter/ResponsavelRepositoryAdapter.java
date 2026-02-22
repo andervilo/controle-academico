@@ -67,4 +67,18 @@ public class ResponsavelRepositoryAdapter implements ResponsavelRepositoryPort {
                 .map(mapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<Responsavel> listarPaginado(int page, int size) {
+        org.springframework.data.domain.Page<br.com.sdd.controleacademico.infrastructure.persistence.entity.ResponsavelEntity> result = jpaRepository
+                .findAll(org.springframework.data.domain.PageRequest.of(page, size,
+                        org.springframework.data.domain.Sort.by("nome")));
+
+        return new br.com.sdd.controleacademico.domain.model.PaginationResult<>(
+                result.getContent().stream().map(mapper::toDomain).toList(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.getSize(),
+                result.getNumber());
+    }
 }

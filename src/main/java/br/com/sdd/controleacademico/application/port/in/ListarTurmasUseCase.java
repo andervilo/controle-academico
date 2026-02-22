@@ -5,4 +5,6 @@ import java.util.List;
 
 public interface ListarTurmasUseCase {
     List<Turma> listarTodas();
+
+    br.com.sdd.controleacademico.domain.model.PaginationResult<Turma> listarPaginado(int page, int size);
 }

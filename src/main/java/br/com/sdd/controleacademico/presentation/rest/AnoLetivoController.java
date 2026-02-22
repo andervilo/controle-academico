@@ -52,8 +52,26 @@ public class AnoLetivoController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os anos letivos")
-    public ResponseEntity<List<AnoLetivoResponse>> listarTodos() {
+    @Operation(summary = "Listar todos os anos letivos (paginado)")
+    public ResponseEntity<br.com.sdd.controleacademico.presentation.rest.dto.PaginatedResponse<AnoLetivoResponse>> listarTodos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        var result = listarUseCase.listarPaginado(page, size);
+        List<AnoLetivoResponse> content = result.content().stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(new br.com.sdd.controleacademico.presentation.rest.dto.PaginatedResponse<>(
+                content,
+                result.totalElements(),
+                result.totalPages(),
+                result.size(),
+                result.number()));
+    }
+
+    @GetMapping("/todos")
+    @Operation(summary = "Listar todos os anos letivos (sem paginação)")
+    public ResponseEntity<List<AnoLetivoResponse>> listarTodosSemPaginacao() {
         return ResponseEntity.ok(listarUseCase.listarTodos().stream().map(this::toResponse).toList());
     }
 

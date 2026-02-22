@@ -16,4 +16,9 @@ public class ListarTurmasService implements ListarTurmasUseCase {
     public List<Turma> listarTodas() {
         return repository.listarTodos();
     }
+
+    @Override
+    public br.com.sdd.controleacademico.domain.model.PaginationResult<Turma> listarPaginado(int page, int size) {
+        return repository.listarPaginado(page, size);
+    }
 }

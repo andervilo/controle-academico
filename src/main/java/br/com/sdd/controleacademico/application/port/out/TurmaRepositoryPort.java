@@ -17,6 +17,8 @@ public interface TurmaRepositoryPort {
 
     List<Turma> listarTodos();
 
+    br.com.sdd.controleacademico.domain.model.PaginationResult<Turma> listarPaginado(int page, int size);
+
     void adicionarAluno(UUID turmaId, UUID alunoId);
 
     void removerAluno(UUID turmaId, UUID alunoId);

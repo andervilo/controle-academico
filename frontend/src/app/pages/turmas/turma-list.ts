@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { TableModule } from 'primeng/table';
+import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
@@ -25,7 +25,19 @@ import { FormsModule } from '@angular/forms';
       <ng-template #end><p-button label="Nova Turma" icon="pi pi-plus" severity="primary" routerLink="/turmas/novo" /></ng-template>
     </p-toolbar>
     <div class="card">
-      <p-table [value]="items()" [loading]="loading()" dataKey="id">
+      <p-table 
+        [value]="items()" 
+        [loading]="loading()" 
+        dataKey="id"
+        [lazy]="true"
+        (onLazyLoad)="onLazyLoad($event)"
+        [rows]="rows()"
+        [totalRecords]="totalRecords()"
+        [paginator]="true"
+        [alwaysShowPaginator]="false"
+        [first]="first()"
+        [rowsPerPageOptions]="[10, 15, 20, 50, 100]"
+      >
         <ng-template #header><tr><th>Nome</th><th>Curso</th><th>Ano Letivo</th><th style="width: 10rem">Ações</th></tr></ng-template>
         <ng-template #body let-item>
           <tr>
@@ -122,7 +134,12 @@ export class TurmaListComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly API = `${environment.apiUrl}/turmas`;
-  items = signal<any[]>([]); loading = signal(false);
+  items = signal<any[]>([]);
+  loading = signal(false);
+  totalRecords = signal(0);
+  rows = signal(10);
+  first = signal(0);
+
   cursos = signal<any[]>([]); anos = signal<any[]>([]);
 
   // View Modal State
@@ -139,11 +156,39 @@ export class TurmaListComponent implements OnInit {
   selectedAlunos: any[] = [];
 
   ngOnInit() {
-    this.http.get<any[]>(`${environment.apiUrl}/cursos`).subscribe({ next: (r) => this.cursos.set(r) });
-    this.http.get<any[]>(`${environment.apiUrl}/anos-letivos`).subscribe({ next: (r) => this.anos.set(r) });
-    this.load();
+    this.http.get<any[]>(`${environment.apiUrl}/cursos/todos`).subscribe({
+      next: (r) => {
+        // If server returns paginated, adjust here
+        this.cursos.set(r);
+      }
+    });
+    this.http.get<any[]>(`${environment.apiUrl}/anos-letivos/todos`).subscribe({
+      next: (r) => {
+        // If server returns paginated, adjust here
+        this.anos.set(r);
+      }
+    });
   }
-  load() { this.loading.set(true); this.http.get<any[]>(this.API).subscribe({ next: (r) => { this.items.set(r); this.loading.set(false); }, error: () => this.loading.set(false) }); }
+  load(page: number = 0, size: number = 10) {
+    this.loading.set(true);
+    const params = { page: page.toString(), size: size.toString() };
+    this.http.get<any>(this.API, { params }).subscribe({
+      next: (r) => {
+        this.items.set(r.content);
+        this.totalRecords.set(r.totalElements);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onLazyLoad(event: TableLazyLoadEvent) {
+    const page = (event.first || 0) / (event.rows || 10);
+    const size = event.rows || 10;
+    this.rows.set(size);
+    this.first.set(event.first || 0);
+    this.load(page, size);
+  }
   getCursoNome(id: string) { return this.cursos().find(c => c.id === id)?.nome || id; }
   getAnoNome(id: string) { return this.anos().find(a => a.id === id)?.ano || id; }
   confirmDelete(item: any) { this.confirmationService.confirm({ message: `Deseja excluir "${item.nome}"?`, header: 'Confirmar', acceptLabel: 'Sim', rejectLabel: 'Cancelar', acceptButtonStyleClass: 'p-button-danger', accept: () => this.http.delete(`${this.API}/${item.id}`).subscribe({ next: () => { this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Turma excluída' }); this.load(); }, error: (e) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: e.error?.detail || e.error?.message || 'Erro ao excluir' }) }) }); }

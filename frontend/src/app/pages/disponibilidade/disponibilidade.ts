@@ -16,20 +16,20 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { environment } from '@/environments/environment';
 
 const DIAS_SEMANA = [
-    { label: 'Segunda', value: 'SEGUNDA' },
-    { label: 'Terça', value: 'TERCA' },
-    { label: 'Quarta', value: 'QUARTA' },
-    { label: 'Quinta', value: 'QUINTA' },
-    { label: 'Sexta', value: 'SEXTA' },
-    { label: 'Sábado', value: 'SABADO' },
+  { label: 'Segunda', value: 'SEGUNDA' },
+  { label: 'Terça', value: 'TERCA' },
+  { label: 'Quarta', value: 'QUARTA' },
+  { label: 'Quinta', value: 'QUINTA' },
+  { label: 'Sexta', value: 'SEXTA' },
+  { label: 'Sábado', value: 'SABADO' },
 ];
 
 @Component({
-    selector: 'app-disponibilidade',
-    standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormsModule, ButtonModule, SelectModule, CardModule, TableModule, ToastModule, ToolbarModule, FloatLabelModule, InputTextModule, ConfirmDialogModule, TagModule],
-    providers: [MessageService, ConfirmationService],
-    template: `
+  selector: 'app-disponibilidade',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, ButtonModule, SelectModule, CardModule, TableModule, ToastModule, ToolbarModule, FloatLabelModule, InputTextModule, ConfirmDialogModule, TagModule],
+  providers: [MessageService, ConfirmationService],
+  template: `
     <p-toast /><p-confirmdialog />
     <p-toolbar styleClass="mb-6 gap-2">
       <ng-template #start><h2 class="m-0 text-color font-bold text-2xl">Disponibilidade de Professores</h2></ng-template>
@@ -103,55 +103,55 @@ const DIAS_SEMANA = [
   `,
 })
 export class DisponibilidadeComponent implements OnInit {
-    private readonly http = inject(HttpClient);
-    private readonly fb = inject(FormBuilder);
-    private readonly messageService = inject(MessageService);
-    private readonly confirmationService = inject(ConfirmationService);
+  private readonly http = inject(HttpClient);
+  private readonly fb = inject(FormBuilder);
+  private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
 
-    professores = signal<any[]>([]);
-    disponibilidades = signal<any[]>([]);
-    selectedProfessorId: string | null = null;
-    loading = signal(false);
-    diasSemana = DIAS_SEMANA;
+  professores = signal<any[]>([]);
+  disponibilidades = signal<any[]>([]);
+  selectedProfessorId: string | null = null;
+  loading = signal(false);
+  diasSemana = DIAS_SEMANA;
 
-    form = this.fb.group({
-        diaSemana: ['', Validators.required],
-        horaInicio: ['', Validators.required],
-        horaFim: ['', Validators.required],
+  form = this.fb.group({
+    diaSemana: ['', Validators.required],
+    horaInicio: ['', Validators.required],
+    horaFim: ['', Validators.required],
+  });
+
+  ngOnInit() {
+    this.http.get<any[]>(`${environment.apiUrl}/professores/todos`).subscribe({ next: (r) => this.professores.set(r) });
+  }
+
+  onProfessorChange() {
+    if (this.selectedProfessorId) this.loadDisponibilidades();
+  }
+
+  loadDisponibilidades() {
+    this.http.get<any[]>(`${environment.apiUrl}/professores/${this.selectedProfessorId}/disponibilidades`).subscribe({
+      next: (r) => this.disponibilidades.set(r),
     });
+  }
 
-    ngOnInit() {
-        this.http.get<any[]>(`${environment.apiUrl}/professores`).subscribe({ next: (r) => this.professores.set(r) });
-    }
+  getDiaLabel(value: string) { return DIAS_SEMANA.find(d => d.value === value)?.label || value; }
 
-    onProfessorChange() {
-        if (this.selectedProfessorId) this.loadDisponibilidades();
-    }
+  onSubmit() {
+    if (this.form.invalid || !this.selectedProfessorId) return;
+    this.loading.set(true);
+    this.http.post(`${environment.apiUrl}/professores/${this.selectedProfessorId}/disponibilidades`, this.form.value).subscribe({
+      next: () => { this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Disponibilidade adicionada' }); this.form.reset(); this.loading.set(false); this.loadDisponibilidades(); },
+      error: (err) => { this.loading.set(false); this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.detail || err.error?.message || 'Erro ao adicionar' }); },
+    });
+  }
 
-    loadDisponibilidades() {
-        this.http.get<any[]>(`${environment.apiUrl}/professores/${this.selectedProfessorId}/disponibilidades`).subscribe({
-            next: (r) => this.disponibilidades.set(r),
-        });
-    }
-
-    getDiaLabel(value: string) { return DIAS_SEMANA.find(d => d.value === value)?.label || value; }
-
-    onSubmit() {
-        if (this.form.invalid || !this.selectedProfessorId) return;
-        this.loading.set(true);
-        this.http.post(`${environment.apiUrl}/professores/${this.selectedProfessorId}/disponibilidades`, this.form.value).subscribe({
-            next: () => { this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Disponibilidade adicionada' }); this.form.reset(); this.loading.set(false); this.loadDisponibilidades(); },
-            error: (err) => { this.loading.set(false); this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.detail || err.error?.message || 'Erro ao adicionar' }); },
-        });
-    }
-
-    confirmDelete(item: any) {
-        this.confirmationService.confirm({
-            message: `Remover disponibilidade de ${this.getDiaLabel(item.diaSemana)} ${item.horaInicio}-${item.horaFim}?`,
-            header: 'Confirmar', acceptLabel: 'Sim', rejectLabel: 'Cancelar', acceptButtonStyleClass: 'p-button-danger',
-            accept: () => this.http.delete(`${environment.apiUrl}/professores/disponibilidades/${item.id}`).subscribe({
-                next: () => { this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Disponibilidade removida' }); this.loadDisponibilidades(); },
-            }),
-        });
-    }
+  confirmDelete(item: any) {
+    this.confirmationService.confirm({
+      message: `Remover disponibilidade de ${this.getDiaLabel(item.diaSemana)} ${item.horaInicio}-${item.horaFim}?`,
+      header: 'Confirmar', acceptLabel: 'Sim', rejectLabel: 'Cancelar', acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.http.delete(`${environment.apiUrl}/professores/disponibilidades/${item.id}`).subscribe({
+        next: () => { this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Disponibilidade removida' }); this.loadDisponibilidades(); },
+      }),
+    });
+  }
 }

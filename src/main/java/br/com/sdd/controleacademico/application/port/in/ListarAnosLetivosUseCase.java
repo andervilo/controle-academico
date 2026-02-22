@@ -5,4 +5,6 @@ import java.util.List;
 
 public interface ListarAnosLetivosUseCase {
     List<AnoLetivo> listarTodos();
+
+    br.com.sdd.controleacademico.domain.model.PaginationResult<AnoLetivo> listarPaginado(int page, int size);
 }
