@@ -4,6 +4,7 @@ import br.com.sdd.controleacademico.application.port.in.*;
 import br.com.sdd.controleacademico.domain.model.DiaSemana;
 import br.com.sdd.controleacademico.domain.model.Disciplina;
 import br.com.sdd.controleacademico.domain.model.Professor;
+import br.com.sdd.controleacademico.domain.model.PaginationResult;
 import br.com.sdd.controleacademico.domain.model.ProfessorDisponibilidade;
 import br.com.sdd.controleacademico.domain.model.TurmaDisciplinaProfessor;
 import br.com.sdd.controleacademico.presentation.rest.dto.*;
@@ -70,9 +71,22 @@ public class ProfessorController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os professores")
-    public ResponseEntity<List<ProfessorResponse>> listarTodos() {
-        return ResponseEntity.ok(listarUseCase.listarTodos().stream().map(this::toResponse).toList());
+    @Operation(summary = "Listar professores (paginado)")
+    public ResponseEntity<PaginatedResponse<ProfessorResponse>> listarPaginado(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        PaginationResult<Professor> result = listarUseCase.listarPaginado(page, size);
+
+        List<ProfessorResponse> content = result.content().stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(new PaginatedResponse<>(
+                content,
+                result.totalElements(),
+                result.totalPages(),
+                result.size(),
+                result.number()));
     }
 
     @PutMapping("/{id}")

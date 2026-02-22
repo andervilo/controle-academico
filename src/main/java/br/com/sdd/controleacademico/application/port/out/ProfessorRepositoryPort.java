@@ -1,6 +1,7 @@
 package br.com.sdd.controleacademico.application.port.out;
 
 import br.com.sdd.controleacademico.domain.model.Professor;
+import br.com.sdd.controleacademico.domain.model.PaginationResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,4 +19,6 @@ public interface ProfessorRepositoryPort {
     void deletar(UUID id);
 
     List<Professor> listarTodos();
+
+    PaginationResult<Professor> listarPaginado(int page, int size);
 }

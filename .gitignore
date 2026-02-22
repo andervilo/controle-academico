@@ -43,3 +43,18 @@ build/
 *.zip
 *.tar.gz
 *.rar
+
+### Node / Angular ###
+node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/node_modules/
+
+### Project Specific ###
+.agent/
+.gemini/
+build.log
+mvn-test.log
+error.log
+error.txt
+

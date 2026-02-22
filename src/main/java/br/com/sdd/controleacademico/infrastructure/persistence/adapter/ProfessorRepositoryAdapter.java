@@ -2,8 +2,12 @@ package br.com.sdd.controleacademico.infrastructure.persistence.adapter;
 
 import br.com.sdd.controleacademico.application.port.out.ProfessorRepositoryPort;
 import br.com.sdd.controleacademico.domain.model.Professor;
+import br.com.sdd.controleacademico.domain.model.PaginationResult;
 import br.com.sdd.controleacademico.infrastructure.persistence.mapper.ProfessorMapper;
 import br.com.sdd.controleacademico.infrastructure.persistence.repository.SpringProfessorRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -48,5 +52,18 @@ public class ProfessorRepositoryAdapter implements ProfessorRepositoryPort {
     @Override
     public List<Professor> listarTodos() {
         return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public PaginationResult<Professor> listarPaginado(int page, int size) {
+        Page<br.com.sdd.controleacademico.infrastructure.persistence.entity.ProfessorEntity> result = jpaRepository
+                .findAll(PageRequest.of(page, size, Sort.by("nome")));
+
+        return new PaginationResult<>(
+                result.getContent().stream().map(mapper::toDomain).toList(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.getSize(),
+                result.getNumber());
     }
 }
